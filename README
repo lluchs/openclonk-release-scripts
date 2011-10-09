@@ -1,0 +1,14 @@
+Steps to use this:
+
+	* Build c4group for the host machine and add it to $HOME/bin
+	  or add a symlink there
+	* Add the file keys/key-boom.txt with the key for authentication
+	  with the masterserver
+	* Add the file passwd/nightly.txt with the FTP password for
+	  the nightly builds
+	* Download the nightly dependencies from the nightly builds
+	  webpage and extract them into dependencies/win32-x86-mingw
+	  and dependencies/win32-x64-mingw, respectively.
+	  (TODO: This step could be automatized)
+	* Run main.py in a screen session in a loop so that it gets
+	  restarted when it crashes.
