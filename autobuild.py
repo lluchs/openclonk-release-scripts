@@ -35,11 +35,12 @@ def obtain_impl(revision, arch, binaries, destination, have_queued):
 	url = 'http://hg.openclonk.org/openclonk/xml-autobuild/%s' % revision
 	reply = urllib.urlopen(url).read()
 	tree = xml.dom.minidom.parseString(reply)
+	toplevel = firstElement(tree)
 
-	if tree.firstChild.nodeName != 'autobuildlist': raise Exception('Invalid XML: Toplevel node is not autobuildlist')
-	if firstElement(tree.firstChild).nodeName != 'changeset': raise Exception('Invalid XML: No changesets available')
+	if toplevel.nodeName != 'autobuildlist': raise Exception('Invalid XML: Toplevel node is not "autobuildlist" but "%s"' % tree.firstChild.nodeName)
+	if firstElement(toplevel).nodeName != 'changeset': raise Exception('Invalid XML: No changesets available')
 
-	for child in firstElement(tree.firstChild).childNodes:
+	for child in firstElement(toplevel).childNodes:
 		if child.nodeType != xml.dom.Node.ELEMENT_NODE: continue
 
 		if child.nodeName == 'builds':
