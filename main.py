@@ -5,6 +5,7 @@ import hg
 import release
 import notifyqueue
 import nightlyenginebuilder
+import snapshotbuilder
 
 class BuildServer():
 	def __init__(self):
@@ -40,8 +41,11 @@ try:
 	server = BuildServer()
 
 	queue = notifyqueue.NotifyQueue()
-	nightly_engine = nightlyenginebuilder.NightlyEngineBuilder(queue, server.log)
-	nightly_engine.run_periodic()
+#	nightly_engine = nightlyenginebuilder.NightlyEngineBuilder(queue, server.log)
+#	nightly_engine.run_periodic()
+
+	snapshot = snapshotbuilder.SnapshotBuilder(queue, server.log)
+	snapshot.run_periodic()
 
 #	server.make_release('f6f897a10645')
 

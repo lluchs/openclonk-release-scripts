@@ -15,6 +15,9 @@ def run(command):
 def pack(group):
 	run('%s -p' % group)
 
+def packto(group, destination):
+	run('%s -t %s' % (group, destination))
+
 def update(update_group, old_file, new_file, comment):
 	pwd = os.getcwd()
 	os.chdir(os.path.dirname(old_file))

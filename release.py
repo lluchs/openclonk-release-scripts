@@ -109,6 +109,8 @@ class ReleaseBuilder():
 		available_versions = filter(lambda x: not x.startswith('.'), os.listdir(self.archive_dir))
 		os.mkdir(archive)
 
+		# TODO: Use content iterator and arch iterator instead
+
 		# Copy game content to archive
 		content = []
 		self.log.write('Copying and packing game content to archive...\n')
