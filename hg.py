@@ -18,5 +18,5 @@ def pull():
 def update(revision):
 	run('update %s' % revision)
 
-def id(url):
-	return run('id')
+def id():
+	return run('id --id').strip()

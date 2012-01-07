@@ -6,6 +6,11 @@ import xml.dom.minidom
 import StringIO
 import gzip
 
+class AutobuildException(Exception):
+	def __init__(self, message, uuid):
+		Exception.__init__(self, message)
+		self.uuid = uuid
+
 def download_and_extract(hrefs, destination):
 	filenames = []
 	for bin_type in hrefs:
@@ -33,6 +38,7 @@ def firstElement(node):
 
 def obtain_impl(revision, arch, binaries, destination, have_queued):
 	url = 'http://hg.openclonk.org/openclonk/xml-autobuild/%s' % revision
+
 	reply = urllib.urlopen(url).read()
 	tree = xml.dom.minidom.parseString(reply)
 	toplevel = firstElement(tree)
@@ -50,10 +56,13 @@ def obtain_impl(revision, arch, binaries, destination, have_queued):
 				if subchild.nodeName == 'build' and subchild.getAttribute('triplet') == arch:
 					if subchild.getAttribute('result') == 'nobuild':
 						if not have_queued:
-#							self.log.write('Build for architecture %s is not available\n' % arch)
+#							self.log.write('Build for architecture %s is not available (rev %s)\n' % (arch, revision))
 #							self.log.write('Queuing a build...\n')
-							server = SOAPpy.SOAPProxy('http://[2a01:238:43e1:7e01:216:3eff:fefa:d5]:32000/')
-							server.queuebuild(revision, arch)
+#							server = SOAPpy.SOAPProxy('http://[2a01:238:43e1:7e01:216:3eff:fefa:d5]:32000/')
+							server = SOAPpy.SOAPProxy('http://hg.openclonk.org:32000/')
+							result = server.queuebuild(revision, arch)
+#							self.log.write('   => %s\n' % result.strip())
+							print '  =>', result
 
 #						self.log.write('Waiting for the build to finish...\n')
 						time.sleep(60)
@@ -63,7 +72,7 @@ def obtain_impl(revision, arch, binaries, destination, have_queued):
 						time.sleep(60)
 						return obtain_impl(revision, arch, binaries, destination, True)
 					elif subchild.getAttribute('result') == 'failure':
-						raise Exception('The build resulted in failure for architecture %s' % arch)
+						raise AutobuildException('The build resulted in failure for architecture %s' % arch, subchild.getAttribute('uuid'))
 					elif subchild.getAttribute('result') == 'success':
 #						self.log.write('Build for architecture %s is available\n' % arch)
 
@@ -82,13 +91,18 @@ def obtain_impl(revision, arch, binaries, destination, have_queued):
 								if len(hrefs) != len(binaries):
 									raise Exception('Autobuilder did not build all requested binaries')
 
-								return download_and_extract(hrefs, destination)
+								return download_and_extract(hrefs, destination), subchild.getAttribute('uuid')
 						else:
-							raise Exception('No binaries available for successful build of architecture %s' % arch)
+#							return ([], subchild.getAttribute('uuid'))
+							raise AutobuildException('No binaries available for successful build of architecture %s' % arch, subchild.getAttribute('uuid'))
+					else:
+							raise AutobuildException('Unexpected build result "%s" for revision %s, architecture %s' % (subchild.getAttribute('result'), revision, arch), subchild.getAttribute('uuid'))
 			else:
 				raise Exception('Autobuilder has no build for architecture %s available' % arch)
 	else:
 		raise Exception('Invalid XML: Changeset has no builds')
 
 def obtain(revision, arch, binaries, destination):
-	return obtain_impl(revision, arch, binaries, destination, False)
+	rr = obtain_impl(revision, arch, binaries, destination, False)
+	print rr
+	return rr

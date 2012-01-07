@@ -3,6 +3,8 @@ import sys
 
 import hg
 import release
+import notifyqueue
+import nightlyenginebuilder
 
 class BuildServer():
 	def __init__(self):
@@ -15,6 +17,17 @@ class BuildServer():
 
 		os.chdir('openclonk')
 
+		# Register builders
+#		self.queue = NotifyQueue()
+#		self.nightly_engine = NightlyEngineBuilder(queue)
+
+	def run(self):
+		# Run main event loop
+		while True:
+			job = queue.get()
+			if not job():
+				return
+
 	def make_release(self, revision):
 		try:
 			builder = release.ReleaseBuilder(self.log)
@@ -25,8 +38,13 @@ class BuildServer():
 
 try:
 	server = BuildServer()
-#	server.make_release('99bd2ab9f906')
-	server.make_release('f6f897a10645')
+
+	queue = notifyqueue.NotifyQueue()
+	nightly_engine = nightlyenginebuilder.NightlyEngineBuilder(queue, server.log)
+	nightly_engine.run_periodic()
+
+#	server.make_release('f6f897a10645')
+
 except Exception as ex:
 	print 'A fatal error occured:'
 	print '  ' + str(ex)

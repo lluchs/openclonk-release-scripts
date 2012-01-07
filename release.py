@@ -179,7 +179,7 @@ class ReleaseBuilder():
 
 		# Create architecture specific files:
 		all_files = {}
-		for arch in ['win32-x86-mingw', 'win32-x64-mingw', 'linux-x86-gcc', 'linux-x64-gcc']:
+		for arch in arches.arches:
 			# Obtain clonk and c4group binaries and dependencies and save in archive/$arch
 			self.log.write('Create architecture dependent files for %s\n' % arch)
 
@@ -187,7 +187,7 @@ class ReleaseBuilder():
 			os.mkdir(archdir)
 
 			# Returns the actual binaries filenames (for example, added .exe for windows binaries)
-			binaries = autobuild.obtain(revision, arch, ['clonk', 'c4group'], archdir)
+			binaries, uuid = autobuild.obtain(revision, arch, ['clonk', 'c4group'], archdir)
 
 			# Copy dependencies
 			depdir = os.path.join('../dependencies', arch)
