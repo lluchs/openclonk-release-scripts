@@ -11,8 +11,8 @@ class AutobuildException(Exception):
 		Exception.__init__(self, message)
 		self.uuid = uuid
 
-def download_and_extract(hrefs, destination):
-	filenames = []
+def download_and_extract(hrefs):
+	files = []
 	for bin_type in hrefs:
 		href = hrefs[bin_type]
 
@@ -24,11 +24,11 @@ def download_and_extract(hrefs, destination):
 		filename, ext = os.path.splitext(href[:-3])
 		filename = bin_type + ext
 
-		open(os.path.join(destination, filename), 'wb').write(gzipped.read()) # I seem to remember there was a more elegant method to this but I don't find it anymore :( TODO: hm... shutil.copyfileobj?
-		os.chmod(os.path.join(destination, filename), 0755)
+#		open(os.path.join(destination, filename), 'wb').write(gzipped.read()) # I seem to remember there was a more elegant method to this but I don't find it anymore :( TODO: hm... shutil.copyfileobj?
+#		os.chmod(os.path.join(destination, filename), 0755)
 
-		filenames.append(filename)
-	return filenames
+		files.append((filename, gzipped))
+	return files
 
 def firstElement(node):
 	child = node.firstChild
@@ -36,7 +36,7 @@ def firstElement(node):
 		child = child.nextSibling
 	return child
 
-def obtain_impl(revision, arch, binaries, destination, have_queued):
+def obtain_impl(revision, arch, binaries, have_queued):
 	url = 'http://hg.openclonk.org/openclonk/xml-autobuild/%s' % revision
 
 	reply = urllib.urlopen(url).read()
@@ -66,11 +66,11 @@ def obtain_impl(revision, arch, binaries, destination, have_queued):
 
 #						self.log.write('Waiting for the build to finish...\n')
 						time.sleep(60)
-						return obtain_impl(revision, arch, binaries, destination, True)
+						return obtain_impl(revision, arch, binaries, True)
 					elif subchild.getAttribute('result') == 'inprogress':
 #						self.log.write('Waiting for the build to finish...\n')
 						time.sleep(60)
-						return obtain_impl(revision, arch, binaries, destination, True)
+						return obtain_impl(revision, arch, binaries, True)
 					elif subchild.getAttribute('result') == 'failure':
 						raise AutobuildException('The build resulted in failure for architecture %s' % arch, subchild.getAttribute('uuid'))
 					elif subchild.getAttribute('result') == 'success':
@@ -91,7 +91,7 @@ def obtain_impl(revision, arch, binaries, destination, have_queued):
 								if len(hrefs) != len(binaries):
 									raise Exception('Autobuilder did not build all requested binaries')
 
-								return download_and_extract(hrefs, destination), subchild.getAttribute('uuid')
+								return download_and_extract(hrefs), subchild.getAttribute('uuid')
 						else:
 #							return ([], subchild.getAttribute('uuid'))
 							raise AutobuildException('No binaries available for successful build of architecture %s' % arch, subchild.getAttribute('uuid'))
@@ -102,7 +102,5 @@ def obtain_impl(revision, arch, binaries, destination, have_queued):
 	else:
 		raise Exception('Invalid XML: Changeset has no builds')
 
-def obtain(revision, arch, binaries, destination):
-	rr = obtain_impl(revision, arch, binaries, destination, False)
-	print rr
-	return rr
+def obtain(revision, arch, binaries):
+	return obtain_impl(revision, arch, binaries, False)

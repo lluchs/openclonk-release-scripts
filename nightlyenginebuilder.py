@@ -37,20 +37,21 @@ class NightlyEngineBuilder(periodicbuilder.PeriodicBuilder):
 		for arch in arches.arches:
 			try:
 				# obtain an engine build
-				engineX, uuid = autobuild.obtain(rev, arch, ['clonk'], directory)
+				engineX, uuid = autobuild.obtain(rev, arch, ['clonk'])
 
-				# rename it
-				engine, ext = os.path.splitext(os.path.basename(engineX[0]))
+				filename, stream = engineX[0]
+				base, ext = os.path.splitext(filename)
+
 				date = time.strftime('%Y%m%d')
 				new_filename = 'openclonk-engine-%s-%s-%s' % (date, rev, arch)
-				engine_path = os.path.join(directory, new_filename + ext)
-				os.rename(os.path.join(directory, engineX[0]), engine_path)
+#				engine_path = os.path.join(directory, new_filename + ext)
+#				os.rename(os.path.join(directory, engineX[0]), engine_path)
 
 				zip_filename = os.path.join(directory, new_filename + '.zip')
 				z = zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED)
-				z.write(engine_path, os.path.basename(engine_path))
+				z.writestr(new_filename + ext, stream.read())
 				z.close()
-				os.unlink(engine_path)
+				#os.unlink(engine_path)
 
 				uploader = upload.Uploader(self.log)
 				uploader.nightly_file(zip_filename, uuid, rev, arch)

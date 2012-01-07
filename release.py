@@ -187,7 +187,10 @@ class ReleaseBuilder():
 			os.mkdir(archdir)
 
 			# Returns the actual binaries filenames (for example, added .exe for windows binaries)
-			binaries, uuid = autobuild.obtain(revision, arch, ['clonk', 'c4group'], archdir)
+			binaries, uuid = autobuild.obtain(revision, arch, ['clonk', 'c4group'])
+			for filename, stream in binaries:
+				open(os.path.join(archdir, filename), 'w').write(stream.read())
+				os.chmod(os.path.join(archdir, filename), 0755)
 
 			# Copy dependencies
 			depdir = os.path.join('../dependencies', arch)
