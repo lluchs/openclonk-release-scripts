@@ -24,9 +24,6 @@ def download_and_extract(hrefs):
 		filename, ext = os.path.splitext(href[:-3])
 		filename = bin_type + ext
 
-#		open(os.path.join(destination, filename), 'wb').write(gzipped.read()) # I seem to remember there was a more elegant method to this but I don't find it anymore :( TODO: hm... shutil.copyfileobj?
-#		os.chmod(os.path.join(destination, filename), 0755)
-
 		files.append((filename, gzipped))
 	return files
 
@@ -67,7 +64,7 @@ def obtain_impl(revision, arch, binaries, have_queued):
 #						self.log.write('Waiting for the build to finish...\n')
 						time.sleep(60)
 						return obtain_impl(revision, arch, binaries, True)
-					elif subchild.getAttribute('result') == 'inprogress':
+					elif subchild.getAttribute('result') == 'inprogress' or subchild.getAttribute('result') == 'pending':
 #						self.log.write('Waiting for the build to finish...\n')
 						time.sleep(60)
 						return obtain_impl(revision, arch, binaries, True)
