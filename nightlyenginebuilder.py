@@ -58,6 +58,7 @@ class NightlyEngineBuilder(periodicbuilder.PeriodicBuilder):
 				uploader.nightly_file(zip_filename, uuid, rev, arch)
 				os.unlink(zip_filename)
 			except autobuild.AutobuildException as ex:
-				upload.nightly_upload(None, ex.uuid) # make an entry for "failed build"
+				uploader = upload.Uploader(self.log)
+				uploader.nightly_file(None, ex.uuid, rev, arch) # make an entry for "failed build"
 
 		os.rmdir(directory)
