@@ -30,7 +30,7 @@ class Uploader():
 
 			filehash = hmac.new(self.nightly_key, open(filename, 'r').read(), hashlib.sha256).hexdigest()
 
-			remote_dir = 'nightly/engines'
+			remote_dir = 'nightly/snapshots'
 			remote_filename = '%s/%s' % (remote_dir, os.path.basename(filename))
 
 			# Upload the file
@@ -49,7 +49,6 @@ class Uploader():
 		# Now call the nightly page
 		parameters = {
 			'hgid': hgid,
-			'type': 'engine',
 			'uuid': uuid,
 			'digest': filehash,
 			'platform': arch,
@@ -58,8 +57,6 @@ class Uploader():
 
 		if remote_filename is not None:
 			parameters.update({'file': remote_filename})
-
-		# TODO: Evaluate server response
 
 		response = urllib.urlopen('http://openclonk.org/nightly-builds/index.php', urllib.urlencode(parameters))
 		if response.getcode() != 200:
@@ -94,5 +91,7 @@ class Uploader():
 			'hash': filehash
 		}
 
-		urllib.urlopen('http://boom.openclonk.org/server/index.php', urllib.urlencode(parameters))
-#		urllib.urlopen('http://localhost:3526', urllib.urlencode(parameters))
+		response = urllib.urlopen('http://boom.openclonk.org/server/index.php', urllib.urlencode(parameters))
+#		response = urllib.urlopen('http://localhost:3526', urllib.urlencode(parameters))
+		if response.getcode() != 200:
+			raise Exception('Upload failed: %s' % response.read())
