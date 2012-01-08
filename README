@@ -4,10 +4,15 @@ Steps to use this:
 	  or add a symlink there
 	* Add the file keys/key-boom.txt with the key for authentication
 	  with the masterserver
+	* Add the file keys/key-ck.txt with the key for authentication with the
+	  development snapshot page
+	* Add the file keys/key-isilkor.txt with the key for authentication
+	  with the push notification
 	* Add the file passwd/nightly.txt with the FTP password for
 	  the nightly builds
-	* Download the nightly dependencies from the nightly builds
-	  webpage and extract them into dependencies/win32-x86-mingw
+	* Download the autobuild dependencies from
+	  http://hg.openclonk.org/openclonk/static/autobuild/
+	  and extract them into dependencies/win32-x86-mingw
 	  and dependencies/win32-x64-mingw, respectively.
 	  (TODO: This step could be automatized)
 	* Run main.py in a screen session in a loop so that it gets
