@@ -2,7 +2,7 @@ import os
 import sys
 
 import hg
-#import release
+#import releasebuilder
 import notifyqueue
 import pushtrigger
 #import snapshotbuilder
@@ -26,15 +26,15 @@ class BuildServer():
 		# Run main event loop
 		while True:
 			job = self.queue.get()
-
-			# TODO: Descriptive job name, so we can log here what we are gonna do
+			self.log.write('Running job "%s".\n' % job.name)
 
 			try:
 				if not job():
-					self.log.write('Job requests exiting. Exiting.\n')
+					self.log.write('Job "%s" requests exiting. Exiting.\n' % job.name)
 					return
+				self.log.write('Job "%s" finished successfully.\n' % job.name)
 			except Exception as ex:
-				self.log.write('Job failed to finish: %s\n' % ex)
+				self.log.write('Job "%s" failed to finish: %s\n' % (job.name, ex))
 
 #	def make_release(self, revision):
 #		try:

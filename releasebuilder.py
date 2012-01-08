@@ -15,6 +15,10 @@ class ReleaseBuilder():
 		self.revision = revision
 		self.log = log
 
+		# TODO: Cannot parse version file at this point yet - might
+		# want to take as constructor params.
+		self.name = 'Release for revision %s' % revision
+
 	def parse_version_file(self, filename):
 		v = [-1,-1,-1]
 		for line in open(filename, 'r'):

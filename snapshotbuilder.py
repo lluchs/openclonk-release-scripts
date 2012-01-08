@@ -15,6 +15,7 @@ class SnapshotBuilder():
 	def __init__(self, revision, log):
 		self.revision = revision
 		self.log = log
+		self.name = 'Development snapshot for revision %s' % revision
 
 	def __call__(self):
 		# TODO: Exception safety

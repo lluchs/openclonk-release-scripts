@@ -12,6 +12,7 @@ class RevisionPushed():
 	def __init__(self, queue, log):
 		self.queue = queue
 		self.log = log
+		self.name = 'Analyze new changesets'
 
 	def __call__(self):
 		self.log.write('New changesets have been pushed.\n')
