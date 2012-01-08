@@ -4,8 +4,9 @@ class NotifyQueue():
 	def __init__(self):
 		self.queue = Queue.PriorityQueue()
 
-	def put(priority, job):
-		self.queue.put((priority, job))
+	def put(self, priority, job):
+		return self.queue.put((priority, job))
 
-	def get():
-		self.queue.get()
+	def get(self):
+		priority, job = self.queue.get()
+		return job

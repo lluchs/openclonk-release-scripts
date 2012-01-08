@@ -59,7 +59,6 @@ def obtain_impl(revision, arch, binaries, have_queued):
 							server = SOAPpy.SOAPProxy('http://hg.openclonk.org:32000/')
 							result = server.queuebuild(revision, arch)
 #							self.log.write('   => %s\n' % result.strip())
-							print '  =>', result
 
 #						self.log.write('Waiting for the build to finish...\n')
 						time.sleep(60)

@@ -10,8 +10,9 @@ import nsis
 import upload
 
 class ReleaseBuilder():
-	def __init__(self, log):
+	def __init__(self, revision, log):
 		self.archive_dir = '../release-archive'
+		self.revision = revision
 		self.log = log
 
 	def parse_version_file(self, filename):
@@ -92,10 +93,10 @@ class ReleaseBuilder():
 			return tarname
 
 	# TODO: Make this use smaller chunks, and proper cleanup in error cases (try/finally)
-	def run(self, revision):
-		self.log.write('Releasing revision %s...\n' % revision)
+	def __call__(self):
+		self.log.write('Releasing revision %s...\n' % self.revision)
 
-		hg.update(revision)
+		hg.update(self.revision)
 		(major, minor, micro) = self.parse_version_file('Version.txt')
 
 		self.log.write('==> Version %d.%d.%d\n' % (major, minor, micro))
@@ -189,7 +190,7 @@ class ReleaseBuilder():
 			os.mkdir(archdir)
 
 			# Returns the actual binaries filenames (for example, added .exe for windows binaries)
-			binaries, uuid = autobuild.obtain(revision, arch, ['clonk', 'c4group'])
+			binaries, uuid = autobuild.obtain(self.revision, arch, ['clonk', 'c4group'])
 			for filename, stream in binaries:
 				open(os.path.join(archdir, filename), 'w').write(stream.read())
 				os.chmod(os.path.join(archdir, filename), 0755)
@@ -273,3 +274,5 @@ class ReleaseBuilder():
 			if 'update' in files:
 				uploader.release_file(files['update'], arch, (major, minor, micro), files['old_versions'])
 				os.unlink(files['update'])
+
+		return True
