@@ -4,8 +4,10 @@ import shutil
 import tarfile
 
 import hg
+import arches
 import c4group
-import autobuild
+import contentiter
+import architer
 import nsis
 import upload
 
@@ -52,11 +54,6 @@ class ReleaseBuilder():
 		# releases in the same series.
 		return micro1 < micro2
 
-	def is_content_file(self, filename):
-		if filename == 'Tests.ocf': return False
-		if re.match('.*\\.oc[fgd]', filename): return True
-		return False
-
 	# The given directory contains all distribution files. This packs it into
 	# whatever is appropriate for arch: Windows installer or a tarball
 	# Returns the name.
@@ -93,6 +90,7 @@ class ReleaseBuilder():
 			tarname = os.path.join(os.path.dirname(directory), basename)
 			tar = tarfile.open(tarname, 'w:bz2')
 			tar.add(directory, os.path.basename(directory))
+			tar.close()
 			shutil.rmtree(directory)
 			return tarname
 
@@ -114,26 +112,19 @@ class ReleaseBuilder():
 		available_versions = filter(lambda x: not x.startswith('.'), os.listdir(self.archive_dir))
 		os.mkdir(archive)
 
-		# TODO: Use content iterator and arch iterator instead
-
 		# Copy game content to archive
-		content = []
 		self.log.write('Copying and packing game content to archive...\n')
-		for filename in os.listdir('planet'):
-			if self.is_content_file(filename):
-				self.log.write('%s...\n' % filename)
+		content = [] # game content
+		others  = [] # other misc. non-architecture dependent files
+		for filename, stream in contentiter.ContentIter():
+			self.log.write('%s...\n' % filename)
+			if contentiter.ContentIter.is_content_file(filename):
 				content.append(filename)
+			else:
+				others.append(filename)
 
-				destination = os.path.join(archive, filename)
-				shutil.copytree(os.path.join('planet', filename), destination)
-				c4group.pack(destination) # TODO: Use c4group packto (-t)
-
-		# Copy other files
-		self.log.write('Copying misc files to archive...\n')
-		others = ['planet/AUTHORS', 'planet/COPYING', 'Credits.txt', 'licenses/LGPL.txt']
-		for filename in others:
-			shutil.copy(filename, os.path.join(archive, os.path.basename(filename)))
-		others = map(lambda x: os.path.basename(x), others)
+			destination = os.path.join(archive, filename)
+			open(destination, 'w').write(stream.read()) # TODO: copyfileobj?
 
 		# Create content update
 		old_versions = filter(lambda x: self.can_update(x, (major, minor, micro)), map(lambda x: self.parse_version_number(x), available_versions))
@@ -150,9 +141,9 @@ class ReleaseBuilder():
 			# Run through old versions
 			supported_versions = []
 			for old_major,old_minor,old_micro in old_versions:
-				self.log.write('Creating update from version %d.%d.%d\n' % (old_major, old_minor, old_micro))
+				self.log.write('Creating update from version %d.%d.%d...\n' % (old_major, old_minor, old_micro))
 				old_archive = os.path.join(self.archive_dir, '%d.%d.%d' % (old_major, old_minor, old_micro))
-				old_files = filter(lambda x: self.is_content_file(x), os.listdir(old_archive))
+				old_files = filter(lambda x: contentiter.ContentIter.is_content_file(x), os.listdir(old_archive))
 
 				# Check that all previous files are available
 				# in the current version. C4Update does not
@@ -164,7 +155,7 @@ class ReleaseBuilder():
 						break
 
 				if not have_all_content:
-					self.log.write('Cannot update from version %d.%d.%d because files have been removed\n' % (old_major, old_minor, old_micro))
+					self.log.write('Cannot update from version %d.%d.%d because files have been removed.\n' % (old_major, old_minor, old_micro))
 					continue
 
 				supported_versions.append((old_major, old_minor, old_micro))
@@ -184,38 +175,39 @@ class ReleaseBuilder():
 						if not os.path.exists(os.path.join(update, filename)):
 							c4group.update(update_path, os.path.join(old_archive, filename), os.path.join(archive, filename), '%d.%d.%d' % (major, minor, micro))
 
+				for filename in others:
+					old_arch = os.path.join(self.archive_dir, '%d.%d.%d' % (old_major, old_minor, old_micro))
+					old_path = os.path.join(old_arch, filename)
+					new_path = os.path.join(archive, filename)
+					if not os.path.exists(old_path) or open(old_path, 'rb').read() != open(new_path, 'rb').read():
+						shutil.copy(new_path, os.path.join(update, filename))
+						break
+
 		# Create architecture specific files:
 		all_files = {}
 		for arch in arches.arches:
 			# Obtain clonk and c4group binaries and dependencies and save in archive/$arch
-			self.log.write('Create architecture dependent files for %s\n' % arch)
+			self.log.write('Creating architecture dependent files for %s...\n' % arch)
 
 			archdir = os.path.join(archive, arch)
 			os.mkdir(archdir)
 
-			# Returns the actual binaries filenames (for example, added .exe for windows binaries)
-			binaries, uuid = autobuild.obtain(self.revision, arch, ['clonk', 'c4group'])
-			for filename, stream in binaries:
+			# Copy both binaries and dependencies into archive. 
+			binaries = []
+			for filename, stream in architer.ArchIter(arch):
 				open(os.path.join(archdir, filename), 'w').write(stream.read())
-				os.chmod(os.path.join(archdir, filename), 0755)
+				if architer.ArchIter.is_executable(filename):
+					os.chmod(os.path.join(archdir, filename), 0755)
+				binaries.append(filename)
 
-			# Copy dependencies
-			depdir = os.path.join('../dependencies', arch)
-			try:
-				dependencies = os.listdir(depdir)
-			except:
-				dependencies = []
-			arch_binaries = binaries + dependencies
-
-			# Create distribution directory
+			# Create distribution directory and copy both commond and
+			# architecture dependent files there.
 			distdir = os.path.join(archdir, 'openclonk-%d.%d.%d' % (major, minor, micro))
 			os.mkdir(distdir)
 			for filename in content + others:
 				shutil.copy(os.path.join(archive, filename), os.path.join(distdir, filename))
 			for filename in binaries:
 				shutil.copy(os.path.join(archdir, filename), os.path.join(distdir, filename))
-			for filename in dependencies:
-				shutil.copy(os.path.join(depdir, filename), os.path.join(distdir, filename))
 
 			# Create full installation package
 			full_file = self.pack_full_installation(distdir, arch)
@@ -232,32 +224,27 @@ class ReleaseBuilder():
 				if os.path.exists(old_arch):
 					arch_old_versions.append((old_major, old_minor, old_micro))
 				else:
-					self.log.write('Discarding old version %d.%d.%d from update for architecture %s\n' % (old_major, old_minor, old_micro, arch))
+					self.log.write('Discarding old version %d.%d.%d from update for architecture %s.\n' % (old_major, old_minor, old_micro, arch))
 
 			all_files[arch]['old_versions'] = arch_old_versions[:]
 
 			# Copy arch files into update
 			if len(arch_old_versions) > 0:
+				# Note that we do not abort the update if a depedency file is removed. Even
+				# though C4Update cannot handle this it shouldn't hurt if the unused file
+				# stays around in the Clonk directory.
+
 				dist_update = os.path.join(archdir, 'openclonk-%d.%d.%d-%s.ocu' % (major, minor, micro, arch))
 				shutil.copytree(update, dist_update)
 
-				for filename in others:
-					for old_major,old_minor,old_micro in old_versions:
-						old_archive = os.path.join(self.archive_dir, '%d.%d.%d' % (old_major, old_minor, old_micro))
-						old_path = os.path.join(old_archive, filename)
-						new_path = os.path.join(archive, filename)
+				for filename in binaries:
+					for old_major,old_minor,old_micro in arch_old_versions:
+						old_arch = os.path.join(self.archive_dir, '%d.%d.%d' % (old_major, old_minor, old_micro), arch)
+						old_path = os.path.join(old_arch, filename)
+						new_path = os.path.join(archdir, filename)
 						if not os.path.exists(old_path) or open(old_path, 'rb').read() != open(new_path, 'rb').read():
 							shutil.copy(new_path, os.path.join(dist_update, filename))
 							break
-
-					for filename in arch_binaries:
-						for old_major,old_minor,old_micro in arch_old_versions:
-							old_arch = os.path.join(self.archive_dir, '%d.%d.%d' % (old_major, old_minor, old_micro), arch)
-							old_path = os.path.join(old_arch, filename)
-							new_path = os.path.join(archdir, filename)
-							if not os.path.exists(old_path) or open(old_path, 'rb').read() != open(new_path, 'rb').read():
-								shutil.copy(new_path, os.path.join(dist_update, filename))
-								break
 
 				c4group.pack(dist_update)
 				all_files[arch]['update'] = dist_update

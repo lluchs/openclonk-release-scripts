@@ -6,6 +6,10 @@ import autobuild
 import c4group
 
 class ArchIter():
+	@staticmethod
+	def is_executable(filename):
+		return filename.startswith('clonk') or filename.startswith('c4group')
+
 	def __init__(self, arch):
 		self.arch = arch
 		self.revision = hg.id() # for autobuilds

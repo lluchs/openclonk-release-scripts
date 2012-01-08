@@ -2,10 +2,9 @@ import os
 import sys
 
 import hg
-#import releasebuilder
+import releasebuilder
 import notifyqueue
 import pushtrigger
-#import snapshotbuilder
 
 class BuildServer():
 	def __init__(self):
@@ -36,26 +35,19 @@ class BuildServer():
 			except Exception as ex:
 				self.log.write('Job "%s" failed to finish: %s\n' % (job.name, ex))
 
-#	def make_release(self, revision):
-#		try:
-#			builder = release.ReleaseBuilder(self.log)
-#			builder.run(revision)
-#		except Exception as ex:
-#			self.log.write('Failed to release revision %s: %s\n' % (revision, ex))
-#			raise
+	def make_release(self, revision):
+		try:
+			builder = releasebuilder.ReleaseBuilder(revision, self.log)
+			builder()
+		except Exception as ex:
+			self.log.write('Failed to release revision %s: %s\n' % (revision, ex))
+			raise
 
 try:
 	server = BuildServer()
-	server.run()
-
-#	queue = notifyqueue.NotifyQueue()
-#	nightly_engine = nightlyenginebuilder.NightlyEngineBuilder(queue, server.log)
-#	nightly_engine.run_periodic()
-
-#	snapshot = snapshotbuilder.SnapshotBuilder('82f4d93ae0c7', server.log)
-#	snapshot()
 
 #	server.make_release('f6f897a10645')
+	server.run()
 
 except Exception as ex:
 	print 'A fatal error occured:'
