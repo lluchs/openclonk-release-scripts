@@ -125,7 +125,7 @@ class ReleaseBuilder():
 
 		# Copy other files
 		self.log.write('Copying misc files to archive...\n')
-		others = ['planet/AUTHORS', 'planet/COPYING', 'Credits.txt', 'licenses/LGPL.txt', 'licenses/OpenSSL.txt']
+		others = ['planet/AUTHORS', 'planet/COPYING', 'Credits.txt', 'licenses/LGPL.txt']
 		for filename in others:
 			shutil.copy(filename, os.path.join(archive, os.path.basename(filename)))
 		others = map(lambda x: os.path.basename(x), others)
