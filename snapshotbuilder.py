@@ -21,15 +21,6 @@ class SnapshotBuilder():
 		# TODO: Exception safety
 		hg.update(self.revision)
 
-		# TODO: Use StringIO to write zipfile to memory
-		directory = 'nightly-snapshot'
-
-		try:
-			os.mkdir(directory)
-		except Exception as ex:
-			# TODO: Only pass if directory exists already
-			pass
-
 		# TODO: Use same content streams for all architectures
 		for arch in arches.arches:
 			date = time.strftime('%Y%m%d')
@@ -38,15 +29,15 @@ class SnapshotBuilder():
 			# TODO: Add an archive class...
 			def archive_name(basename):
 				if 'win32' in arch:
-					return os.path.join(directory, basename + '.zip')
+					return basename + '.zip'
 				else:
-					return os.path.join(directory, basename + '.tar.bz2')
+					return basename + '.tar.bz2'
 
-			def open_archive(basename):
+			def open_archive(stream):
 				if 'win32' in arch:
-					return zipfile.ZipFile(archive_name(basename), 'w', zipfile.ZIP_DEFLATED)
+					return zipfile.ZipFile(stream, 'w', zipfile.ZIP_DEFLATED)
 				else:
-					return tarfile.open(archive_name(basename), 'w:bz2')
+					return tarfile.open(fileobj = stream, mode = 'w:bz2')
 
 			def add_to_archive(archive, filename, content):
 				if 'win32' in arch:
@@ -62,7 +53,8 @@ class SnapshotBuilder():
 					archive.addfile(info, StringIO.StringIO(content))
 
 			try:
-				archive = open_archive(filename)
+				archive_stream = StringIO.StringIO()
+				archive = open_archive(archive_stream)
 				for name, stream in contentiter.ContentIter():
 					add_to_archive(archive, name, stream.read())
 
@@ -72,12 +64,15 @@ class SnapshotBuilder():
 				uuid = arch_iter.uuid
 				archive.close()
 
-				uploader = upload.Uploader(self.log)
-				uploader.nightly_file(archive_name(filename), uuid, self.revision, arch)
-				os.unlink(archive_name(filename))
-			except autobuild.AutobuildException as ex:
-				uploader = upload.Uploader(self.log)
-				uploader.nightly_file(None, ex.uuid, self.revision, arch) # make an entry for "failed build"
+				archive_filename = archive_name(filename)
+				archive_stream.seek(0)
 
-		os.rmdir(directory)
+				uploader = upload.Uploader(self.log)
+				uploader.nightly_file(archive_filename, archive_stream, uuid, self.revision, arch)
+			except autobuild.AutobuildException as ex:
+				# make an entry for "failed build"
+				archive_filename = archive_name(filename)
+				uploader = upload.Uploader(self.log)
+				uploader.nightly_file(archive_filename, None, ex.uuid, self.revision, arch)
+
 		return True

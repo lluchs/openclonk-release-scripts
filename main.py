@@ -3,6 +3,7 @@ import sys
 
 import hg
 import releasebuilder
+import snapshotbuilder
 import notifyqueue
 import pushtrigger
 
@@ -43,10 +44,19 @@ class BuildServer():
 			self.log.write('Failed to release revision %s: %s\n' % (revision, ex))
 			raise
 
+	def make_snapshot(self, revision):
+		try:
+			builder = snapshotbuilder.SnapshotBuilder(revision, self.log)
+			builder()
+		except Exception as ex:
+			self.log.write('Failed to release revision %s: %s\n' % (revision, ex))
+			raise
+
 try:
 	server = BuildServer()
 
 #	server.make_release('f6f897a10645')
+#	server.make_snapshot(hg.id())
 	server.run()
 
 except Exception as ex:

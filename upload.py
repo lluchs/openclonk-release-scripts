@@ -3,6 +3,7 @@ import hmac
 import hashlib
 import urllib
 import ftplib
+import StringIO
 
 class Uploader():
 	def __init__(self, log):
@@ -23,12 +24,13 @@ class Uploader():
 		else:
 			raise Exception('Unsupported architecture: %s' % arch)
 
-	def nightly_file(self, filename, uuid, hgid, arch):
-		if filename is not None:
-			# If filename is nil the build failed
+	def nightly_file(self, filename, stream, uuid, hgid, arch):
+		if stream is not None:
+			# If stream is nil the build failed
 			self.log.write('Uploading nightly file %s...\n' % os.path.basename(filename))
 
-			filehash = hmac.new(self.nightly_key, open(filename, 'r').read(), hashlib.sha256).hexdigest()
+			content = stream.read()
+			filehash = hmac.new(self.nightly_key, content, hashlib.sha256).hexdigest()
 
 			remote_dir = 'nightly/snapshots'
 			remote_filename = '%s/%s' % (remote_dir, os.path.basename(filename))
@@ -40,7 +42,7 @@ class Uploader():
 			except ftplib.error_perm:
 				# If the directory exists already errorperm is raised
 				pass
-			ftp.storbinary('STOR %s' % remote_filename, open(filename, 'r'))
+			ftp.storbinary('STOR %s' % remote_filename, StringIO.StringIO(content))
 		else:
 			# In case of a build failure, make a message hash of the UUID
 			remote_filename = None
