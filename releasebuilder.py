@@ -73,14 +73,11 @@ class ReleaseBuilder():
 				if match:
 					items[match.group(1)] = match.group(2)
 
-			# Enable correct PROGRAMFILES
-			programfiles = '$PROGRAMFILES'
-			if '-x64-' in arch: programfiles = '$PROGRAMFILES64'
-
-			# This gets its AUTHORS, COPYING, etc. from a different location but that's OK for now
+			# This gets its AUTHORS, COPYING, etc. from a
+			# different location but that's OK for now
 			pwd = os.getcwd()
 			os.chdir(directory)
-			nsis.run(pwd, '../' + basename, programfiles, items['C4ENGINENAME'] + items['C4VERSIONBUILDNAME'], items['C4PROJECT'], 'clonk.exe', 'c4group.exe')
+			nsis.run(pwd, '../' + basename, '-x64-' in arch, items['C4ENGINENAME'] + items['C4VERSIONBUILDNAME'], items['C4PROJECT'], 'clonk.exe', 'c4group.exe')
 			os.chdir(pwd)
 
 			shutil.rmtree(directory)
