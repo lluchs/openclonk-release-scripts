@@ -55,7 +55,8 @@ class BuildServer():
 try:
 	server = BuildServer()
 
-#	server.make_release('f6f897a10645')
+#	server.make_release('14ab9fe1345a') # 5.2.2
+#	server.make_release('4c71d5edfb06') # 5.2.0
 #	server.make_snapshot(hg.id())
 	server.run()
 
