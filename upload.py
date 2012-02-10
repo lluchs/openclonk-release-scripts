@@ -12,6 +12,8 @@ class Uploader():
 		self.release_key = open('../keys/key-boom.txt').read().strip()
 		self.nightly_key = open('../keys/key-ck.txt').read().strip()
 
+		self.dry_release = False
+
 	def get_masterserver_archname(self, arch):
 		if arch.startswith('win32-x86-'):
 			platform = 'win-x86'
@@ -67,33 +69,40 @@ class Uploader():
 	def release_file(self, filename, arch, (major, minor, micro), oldversions):
 		self.log.write('Uploading release file %s...\n' % os.path.basename(filename))
 
-		filehash = hmac.new(self.release_key, open(filename, 'r').read(), hashlib.sha256).hexdigest() # TODO: strip?
+		if self.dry_release:
+			target_path = '/home/ck/public_html/%s' % os.path.basename(filename)
+			self.log.write('Dry run: Copying to %s\n' % target_path)
 
-		remote_dir = 'release/%d.%d.%d' % (major, minor, micro)
-		remote_filename = '%s/%s' % (remote_dir, os.path.basename(filename))
+			content = open(filename, 'r').read()
+			open(target_path, 'w').write(content)
+		else:
+			filehash = hmac.new(self.release_key, open(filename, 'r').read(), hashlib.sha256).hexdigest() # TODO: strip?
 
-		# Upload the file
-		ftp = ftplib.FTP('ftp.openclonk.org', 'ftp1144497-nightly', open('../passwd/nightly.txt', 'r').read().strip())
+			remote_dir = 'release/%d.%d.%d' % (major, minor, micro)
+			remote_filename = '%s/%s' % (remote_dir, os.path.basename(filename))
 
-		try:
-			ftp.mkd(remote_dir)
-		except ftplib.error_perm:
-			# If the directory exists already errorperm is raised
-			pass
+			# Upload the file
+			ftp = ftplib.FTP('ftp.openclonk.org', 'ftp1144497-nightly', open('../passwd/nightly.txt', 'r').read().strip())
 
-		ftp.storbinary('STOR %s' % remote_filename, open(filename, 'r'))
+			try:
+				ftp.mkd(remote_dir)
+			except ftplib.error_perm:
+				# If the directory exists already errorperm is raised
+				pass
 
-		# Register the uploaded file with the masterserver
-		parameters = {
-			'action': 'release-file',
-			'old_version': ','.join(map(lambda (x,y,z): '%d.%d.%d' % (x,y,z), oldversions)),
-			'new_version': '%d.%d.%d' % (major, minor, micro),
-			'file': remote_filename,
-			'platform': self.get_masterserver_archname(arch),
-			'hash': filehash
-		}
+			ftp.storbinary('STOR %s' % remote_filename, open(filename, 'r'))
 
-		response = urllib.urlopen('http://boom.openclonk.org/server/index.php', urllib.urlencode(parameters))
-#		response = urllib.urlopen('http://localhost:3526', urllib.urlencode(parameters))
-		if response.getcode() != 200:
-			raise Exception('Upload failed: %s' % response.read())
+			# Register the uploaded file with the masterserver
+			parameters = {
+				'action': 'release-file',
+				'old_version': ','.join(map(lambda (x,y,z): '%d.%d.%d' % (x,y,z), oldversions)),
+				'new_version': '%d.%d.%d' % (major, minor, micro),
+				'file': remote_filename,
+				'platform': self.get_masterserver_archname(arch),
+				'hash': filehash
+			}
+
+			response = urllib.urlopen('http://boom.openclonk.org/server/index.php', urllib.urlencode(parameters))
+#			response = urllib.urlopen('http://localhost:3526', urllib.urlencode(parameters))
+			if response.getcode() != 200:
+				raise Exception('Upload failed: %s' % response.read())
