@@ -31,6 +31,14 @@ class RevisionPushed():
 			builder = snapshotbuilder.SnapshotBuilder(new_id, self.log)
 			# TODO: Remove all other snapshot builders from the queue
 			self.queue.put(95, builder)
+
+			# See if something in the docs directory has changed
+			log = hg.log('docs', current_id, new_id, '{node|short}')
+			if len(log) > 1 or (len(log) == 1 and log[0] != current_id):
+				# TODO: Remove all other doc builders from the queue
+				builder = docbuilder.DocBuilder(new_id, self.log)
+				self.queue.put(80, builder)
+
 		else:
 			self.log.write('The default branch has no new changesets.\n')
 
