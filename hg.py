@@ -20,3 +20,6 @@ def update(revision):
 
 def id():
 	return run('id --id').strip()
+
+def log(directory, current_id, new_id, template):
+	return run('log %s -r %s:%s --template="%s\\n"' % (directory, current_id, new_id, template)).strip()
