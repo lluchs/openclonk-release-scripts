@@ -4,6 +4,7 @@ import sys
 import hg
 import releasebuilder
 import snapshotbuilder
+import docbuilder
 import notifyqueue
 import pushtrigger
 
@@ -49,7 +50,15 @@ class BuildServer():
 			builder = snapshotbuilder.SnapshotBuilder(revision, self.log)
 			builder()
 		except Exception as ex:
-			self.log.write('Failed to release revision %s: %s\n' % (revision, ex))
+			self.log.write('Failed to create snapshot for revision %s: %s\n' % (revision, ex))
+			raise
+
+	def make_docs(self, revision):
+		try:
+			builder = docbuilder.DocBuilder(revision, self.log)
+			builder()
+		except Exception as ex:
+			self.log.write('Failed to update documentation for revision %s: %s\n' % (revision, ex))
 			raise
 
 try:
@@ -58,6 +67,7 @@ try:
 #	server.make_release('14ab9fe1345a') # 5.2.2
 #	server.make_release('4c71d5edfb06') # 5.2.0
 #	server.make_snapshot(hg.id())
+#	server.make_docs(hg.id())
 	server.run()
 
 except Exception as ex:

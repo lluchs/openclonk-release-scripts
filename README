@@ -10,6 +10,8 @@ Steps to use this:
 	  with the push notification
 	* Add the file passwd/nightly.txt with the FTP password for
 	  the nightly builds
+	* Add the file passwd/docs.txt with the FTP password for
+	  the documentation upload
 	* Download the autobuild dependencies from
 	  http://hg.openclonk.org/openclonk/static/autobuild/
 	  and extract them into dependencies/win32-x86-mingw
