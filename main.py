@@ -2,6 +2,7 @@ import os
 import sys
 
 import hg
+import log
 import releasebuilder
 import snapshotbuilder
 import docbuilder
@@ -10,7 +11,7 @@ import pushtrigger
 
 class BuildServer():
 	def __init__(self):
-		self.log = sys.stderr #open('oc-release.log', 'w')
+		self.log = log.Log('logs/oc-release.log')
 
 		if not os.path.exists('openclonk'):
 			self.log.write('Openclonk Repository does not exist. Cloning...\n')
