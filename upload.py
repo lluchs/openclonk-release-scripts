@@ -70,7 +70,7 @@ class Uploader():
 		self.log.write('Uploading release file %s...\n' % os.path.basename(filename))
 
 		if self.dry_release:
-			target_path = '/home/ck/public_html/%s' % os.path.basename(filename)
+			target_path = '/home/ck/public_html/dry-release/%s' % os.path.basename(filename)
 			self.log.write('Dry run: Copying to %s\n' % target_path)
 
 			content = open(filename, 'r').read()
