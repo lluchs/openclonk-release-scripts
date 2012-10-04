@@ -8,6 +8,7 @@ import trigger
 import hg
 import snapshotbuilder
 import releasebuilder
+import docbuilder
 
 class RevisionPushed():
 	def __init__(self, queue, log):
