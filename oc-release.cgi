@@ -70,37 +70,69 @@ print """
   <title>OC Release Interface</title>
 
   <style type="text/css">
-   div#Form {
-    margin-top: 5px;
-    margin-right: 5px;
-    padding: 5px;
-    border: 1px black solid;
-    float: left;
+   html {
+     font-size: 12px;
+     font-family: Arial, Sans Serif;
    }
-
-   div#Log {
-    margin-top: 5px;
-    margin-left: 5px;
-    border: 1px black solid;
-    float: left;
+   
+   ul li {
+     padding: 8px 0;
+     line-height: 150%;
    }
-
-   div#LogHead {
-    padding: 5px;
-    border-bottom: 1px black solid;
-    font-size: large;
-    background-color: #FF8000;
+  
+   #Form {
+     background: black url(redbutton.jpg) no-repeat left top;
+     width: 269px;
+     height: 370px;
+     float: left;
+     margin: 20px;
    }
-
-   div#LogBody {
-    padding: 5px;
-    background-color: #F3F781;
+   
+   #Inputs {
+     height: 130px;
+     padding: 20px 20px;
+     color: white;
+     font-weight: bold;
+     text-align: center;
    }
-
-   input#SubmitButton {
-     background-color: #8A0808;
-     color: #ffffff;
-     font-size: large;
+   
+   #Inputs label {
+     display:block;
+   }
+   
+   #Inputs input, #Inputs select {
+     float:center;
+     margin: 2px 0 8px 0;
+     width: 140px;
+     border: 1px solid grey;
+   }
+   
+   #SubmitButton {
+     position: relative;
+     top: 35px;
+     left: 84px;
+     width: 106px;
+     height: 106px;
+     border: 0;
+     background-color: transparent;
+     color: transparent;
+   }
+   
+   #SubmitButton:hover {
+     background: url(redbutton_hl.jpg) no-repeat left top;
+   }
+   
+   #Checklist {
+     float: left;
+     margin: 20px;
+   }
+   
+   #Log {
+     clear:both;
+   }
+   
+   #LogBody {
+     font-family: Courier, monospace;
    }
 
    span.MessageSuccess {
@@ -109,7 +141,6 @@ print """
      color: #FFFFFF;
      background-color: #088A08;
      font-weight: bold;
-     border: 1px solid #084A08;
    }
 
    span.MessageError {
@@ -118,60 +149,42 @@ print """
      color: #FFFFFF;
      background-color: #8A0808;
      font-weight: bold;
-     border: 1px solid #4A0808;
    }
   </style>
  </head>
 
  <body>
-  <img src="icon.png" style="float: left; margin-bottom: 20px; margin-right: 10px;"/> <h1>OpenClonk Release Interface</h1>
-
-  <div style="clear: both;">
-   %(message)s
-   <div>
-    <div id="Form">
+   <div id="Form">
      <form action="%(target)s" method="POST">
-      <table>
-       <tr>
-        <td>User:</td>
-        <td>
-         <select name="user">
-          %(userlist)s
-         </select>
-        </td>
-       </tr>
-       <tr>
-        <td>Passphrase:</td>
-        <td>
-         <input name="passphrase" type="text" />
-        </td>
-       </tr>
-       <tr>
-        <td>Revision:</td>
-        <td>
-         <input name="revision" type="text" />
-        </td>
-       </tr>
-       <tr>
-        <td colspan="2" style="text-align: center;">
-         <input type="submit" id="SubmitButton" value="Release!" name="submit_release" />
-        </td>
-       </tr>
-      </table>
+      <div id="Inputs">
+        <label for="User">User</label>
+        <select id="User" name="user">
+         %(userlist)s
+        </select>
+        <label for="Passphrase">Passphrase</label>
+        <input id="Passphrase" name="passphrase" type="text" required="required"/>
+        <label for="Revision">Changeset ID or branch name</label>
+        <input id="Revision" name="revision" type="text" required="required"/>
+      </div>
+      <input id="SubmitButton" name="submit_release" type="submit" value="Release" onclick="alert('BÄM')"/>
      </form>
-    </div>
-
-    <div id="Log">
-     <div id="LogHead">
-      Recent log messages
-     </div>
+   </div>
+   <div id="Checklist">
+   <h3>Release Checklist</h3>
+   <ul>
+     <li><b>Update our releases on <a href="http://www.desura.com/games/publish/openclonk/execute">desura.com</a></b> through the link at the bottom of the linked page. <br/>Not registered? At least Newton can add you to the group of OpenClonk Developers on Desura.</li>
+     <li><b>Update our entry on <a href="http://www.ccan.de">ccan.de</a></b>. <br/>Forgot the password? Look it up in our internal board.</li>
+     <li><b>Notify our Debian package maintainer</b> that a new version has been released.</li>
+     <li><b>Make announcements</b> in our forum, in our blog and optionally in the <a href="http://www.clonk.de/forum/de">clonk.de</a> forum, in the clonk-center and other forums.</li>
+   </ul>
+   </div>
+   %(message)s
+   <div id="Log">
+     <h3>Recent log messages</h3>
      <div id="LogBody">
-      <code>%(log)s</code>
-     </div>
+   %(log)s
     </div>
    </div>
-  </div>
- </body>
 </html>""" % {
 	'message': '<span class="%s">%s</span>' % (message_type, message_text) if len(message_text) > 0 else '',
 	'target': os.path.basename(sys.argv[0]),
