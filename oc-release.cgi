@@ -17,13 +17,6 @@ basedir = os.path.dirname(os.path.realpath(sys.argv[0]))
 users = sorted([user[4:-4] for user in os.listdir(os.path.join(basedir, 'keys')) if user.startswith('key-') and user.endswith('.txt') and user[4:-4] not in user_blacklist])
 action = sys.stdin.read()
 
-# logfile:
-logfile = open(os.path.join(basedir, 'logs/oc-release.log'), 'r')
-logfile.seek(0, 2)
-size = logfile.tell()
-logfile.seek(-min(log_nlines * 256, size), 1)
-log = '<br />'.join([line for line in logfile.read().split('\n') if line.strip() != ''][-log_nlines:])
-
 # action / XMLRPC
 message_type = 'MessageSuccess'
 message_text = ''
@@ -53,7 +46,7 @@ try:
 		if result != True: raise Exception('Not authorized')
 
 		message_type = 'MessageSuccess'
-		message_text = 'Release scheduled. Please reload the page in a few seconds and check the log.'
+		message_text = 'Release scheduled.'
 		
 except Exception, ex:
 	message_type = 'MessageError'
@@ -151,6 +144,13 @@ print """
      font-weight: bold;
    }
   </style>
+  <script type="text/javascript">
+    var evtSource = new EventSource("oc-release-logview.cgi");
+    evtSource.onmessage = function(e) {
+      var txt = document.createTextNode(e.data);
+      document.getElementById('LogBody').appendChild(txt); 
+    }
+  </script>
  </head>
 
  <body>
@@ -182,12 +182,10 @@ print """
    <div id="Log">
      <h3>Recent log messages</h3>
      <div id="LogBody">
-   %(log)s
-    </div>
+     </div>
    </div>
 </html>""" % {
 	'message': '<span class="%s">%s</span>' % (message_type, message_text) if len(message_text) > 0 else '',
 	'target': os.path.basename(sys.argv[0]),
 	'userlist': '\n'.join(['<option value="%(user)s">%(user)s</option>' % {'user': user} for user in users]),
-	'log': log,
 }
