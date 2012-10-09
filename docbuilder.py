@@ -122,6 +122,7 @@ class DocBuilder():
 		make.run('docs')
 		timedelta = datetime.datetime.now() - starttime
 		self.log.write('done. (took '+ str(total_seconds(timedelta)) +'s) \n')
+		hg.revert('docs')
 		
 		username = 'ftp1144497-docs'
 		passwd = open('../passwd/docs.txt', 'r').read().strip()
