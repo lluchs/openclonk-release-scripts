@@ -9,7 +9,6 @@ import hashlib
 import urllib
 
 # config:
-log_nlines = 50
 user_blacklist = ['boom']
 
 # startup:
@@ -70,7 +69,7 @@ print """
    
    ul li {
      padding: 8px 0;
-     line-height: 150%;
+     line-height: 150%%;
    }
   
    #Form {
@@ -94,7 +93,6 @@ print """
    }
    
    #Inputs input, #Inputs select {
-     float:center;
      margin: 2px 0 8px 0;
      width: 140px;
      border: 1px solid grey;
@@ -148,6 +146,8 @@ print """
     var evtSource = new EventSource("oc-release-logview.cgi");
     evtSource.onmessage = function(e) {
       var txt = document.createTextNode(e.data);
+      if(document.getElementById('LogBody').innerHTML != "")
+        document.getElementById('LogBody').appendChild(document.createElement('br'));
       document.getElementById('LogBody').appendChild(txt); 
     }
   </script>
@@ -166,7 +166,7 @@ print """
         <label for="Revision">Changeset ID or branch name</label>
         <input id="Revision" name="revision" type="text" required="required"/>
       </div>
-      <input id="SubmitButton" name="submit_release" type="submit" value="Release" onclick="alert('BÄM')"/>
+      <input id="SubmitButton" name="submit_release" type="submit" value="Release"/>
      </form>
    </div>
    <div id="Checklist">
@@ -181,8 +181,7 @@ print """
    %(message)s
    <div id="Log">
      <h3>Recent log messages</h3>
-     <div id="LogBody">
-     </div>
+     <div id="LogBody"></div>
    </div>
 </html>""" % {
 	'message': '<span class="%s">%s</span>' % (message_type, message_text) if len(message_text) > 0 else '',
