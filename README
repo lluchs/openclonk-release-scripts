@@ -17,13 +17,8 @@ Steps to use this:
 	  and extract them into dependencies/win32-x86-mingw
 	  and dependencies/win32-x64-mingw, respectively.
 	  (TODO: This step could be automatized)
-	* Create a symlink of oc-release.cgi to a directory seen by your
-	  Apache, and add this to the .htaccess:
-
-		<Files *.cgi>
-        		Options ExecCGI
-	        	SetHandler cgi-script
-		</Files>
-
+	* Create a symlink of the web/ directory to a directory seen by your
+	  Apache. Make sure python and python-pyinotify are installed on the
+	  webserver.
 	* Run main.py in a screen session in a loop so that it gets
 	  restarted when it crashes.

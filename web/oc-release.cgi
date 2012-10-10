@@ -13,7 +13,7 @@ user_blacklist = ['boom']
 
 # startup:
 basedir = os.path.dirname(os.path.realpath(sys.argv[0]))
-users = sorted([user[4:-4] for user in os.listdir(os.path.join(basedir, 'keys')) if user.startswith('key-') and user.endswith('.txt') and user[4:-4] not in user_blacklist])
+users = sorted([user[4:-4] for user in os.listdir(os.path.join(basedir, '../keys')) if user.startswith('key-') and user.endswith('.txt') and user[4:-4] not in user_blacklist])
 action = sys.stdin.read()
 
 # action / XMLRPC

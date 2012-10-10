@@ -1,0 +1,4 @@
+<Files *.cgi>
+	Options ExecCGI
+	SetHandler cgi-script
+</Files>

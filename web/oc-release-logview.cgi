@@ -50,5 +50,5 @@ print "Content-Type: text/event-stream\n"
 sys.stdout.flush()
 
 basedir = os.path.dirname(os.path.realpath(sys.argv[0]))
-watcher = LogWatch(os.path.join(basedir, 'logs/oc-release.log'), 50, callback)
+watcher = LogWatch(os.path.join(basedir, '../logs/oc-release.log'), 50, callback)
 watcher.run()
