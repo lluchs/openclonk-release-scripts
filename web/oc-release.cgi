@@ -150,6 +150,9 @@ print """
         document.getElementById('LogBody').appendChild(document.createElement('br'));
       document.getElementById('LogBody').appendChild(txt); 
     }
+    evtSource.onopen = function(e) {
+      document.getElementById('LogBody').innerHTML = "";
+    }
   </script>
  </head>
 
@@ -181,7 +184,8 @@ print """
    %(message)s
    <div id="Log">
      <h3>Recent log messages</h3>
-     <div id="LogBody"></div>
+     <div id="LogBody">
+     </div>
    </div>
 </html>""" % {
 	'message': '<span class="%s">%s</span>' % (message_type, message_text) if len(message_text) > 0 else '',
