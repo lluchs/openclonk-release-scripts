@@ -213,7 +213,7 @@ class ReleaseBuilder():
 			# Some old_versions might not be available for this architecture, for example in case the architecture was only added
 			# at some later point to the build process.
 			arch_old_versions = []
-			for old_major,old_minor,old_micro in old_versions:
+			for old_major,old_minor,old_micro in supported_versions:
 				old_arch = os.path.join(self.archive_dir, '%d.%d.%d' % (old_major, old_minor, old_micro), arch)
 				# If this does not exist then we cannot update from this version. The content update has already
 				# been created, so the update for this arch might be a bit bigger than it would have to be. But
