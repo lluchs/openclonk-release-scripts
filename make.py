@@ -10,4 +10,4 @@ def run(command):
 	return stdout
 
 def make(directory):
-	run('-C %s' % directory)
+	run('-B -C %s' % directory)
