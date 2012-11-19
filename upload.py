@@ -15,13 +15,13 @@ class Uploader():
 		self.dry_release = False
 
 	def get_masterserver_archname(self, arch):
-		if arch.startswith('win32-x86-'):
+		if arch.startswith('win32-i386-'):
 			return 'win-x86'
-		elif arch.startswith('win32-x64-'):
+		elif arch.startswith('win32-amd64-'):
 			return 'win-x86_64'
-		elif arch.startswith('linux-x86-'):
+		elif arch.startswith('linux-i386-'):
 			return 'linux-x86'
-		elif arch.startswith('linux-x64-'):
+		elif arch.startswith('linux-amd64-'):
 			return 'linux-x86_64'
 		else:
 			raise Exception('Unsupported architecture: %s' % arch)

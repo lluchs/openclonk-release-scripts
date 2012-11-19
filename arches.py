@@ -1,7 +1,7 @@
 arches = [
-	'win32-x86-mingw',
-	'win32-x64-mingw',
-	'linux-x86-gcc',
-	'linux-x64-gcc'
+	'win32-i386-mingw',
+	'win32-amd64-mingw',
+	'linux-i386-gcc',
+	'linux-amd64-gcc'
 #	'linux-x64-clang'
 ]
