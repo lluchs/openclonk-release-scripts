@@ -63,7 +63,7 @@ def obtain_impl(revision, arch, binaries, have_queued):
 #						self.log.write('Waiting for the build to finish...\n')
 						time.sleep(60)
 						return obtain_impl(revision, arch, binaries, True)
-					elif subchild.getAttribute('result') == 'inprogress' or subchild.getAttribute('result') == 'pending':
+					elif subchild.getAttribute('result') == 'inprogress' or subchild.getAttribute('result') == 'enqueued':
 #						self.log.write('Waiting for the build to finish...\n')
 						time.sleep(60)
 						return obtain_impl(revision, arch, binaries, True)
