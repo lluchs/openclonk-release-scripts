@@ -1,7 +1,7 @@
 import os
 import re
 
-import hg
+import git
 import autobuild
 import c4group
 
@@ -12,7 +12,7 @@ class ArchIter():
 
 	def __init__(self, arch):
 		self.arch = arch
-		self.revision = hg.id() # for autobuilds
+		self.revision = git.id() # for autobuilds
 		self.index = 0
 
 		self.files = []

@@ -4,7 +4,7 @@ import zipfile
 import tarfile
 import StringIO
 
-import hg
+import git
 import arches
 import autobuild
 import upload
@@ -19,12 +19,13 @@ class SnapshotBuilder():
 
 	def __call__(self):
 		# TODO: Exception safety
-		hg.update(self.revision)
+		git.reset(self.revision)
+		revhash = git.id()
 
 		# TODO: Use same content streams for all architectures
 		for arch in arches.arches:
 			date = time.strftime('%Y%m%d')
-			filename = 'openclonk-snapshot-%s-%s-%s' % (date, self.revision, arch)
+			filename = 'openclonk-snapshot-%s-%s-%s' % (date, revhash[:10], arch)
 
 			# TODO: Add an archive class...
 			def archive_name(basename):
@@ -68,11 +69,11 @@ class SnapshotBuilder():
 				archive_stream.seek(0)
 
 				uploader = upload.Uploader(self.log)
-				uploader.nightly_file(archive_filename, archive_stream, uuid, self.revision, arch)
+				uploader.nightly_file(archive_filename, archive_stream, uuid, revhash[:10], arch)
 			except autobuild.AutobuildException as ex:
 				# make an entry for "failed build"
 				archive_filename = archive_name(filename)
 				uploader = upload.Uploader(self.log)
-				uploader.nightly_file(archive_filename, None, ex.uuid, self.revision, arch)
+				uploader.nightly_file(archive_filename, None, ex.uuid, revhash[:10], arch)
 
 		return True

@@ -5,7 +5,7 @@ import hmac
 import os
 
 import trigger
-import hg
+import git
 import snapshotbuilder
 import releasebuilder
 import docbuilder
@@ -14,20 +14,20 @@ class RevisionPushed():
 	def __init__(self, queue, log):
 		self.queue = queue
 		self.log = log
-		self.name = 'Analyze new changesets'
+		self.name = 'Analyze new commits'
 
 	def __call__(self):
 		self.log.write('New changesets have been pushed.\n')
 
-		# See if the push changed something in the default branch
-		hg.update('default')
-		current_id = hg.id()
-		hg.pull()
-		hg.update('default')
-		new_id = hg.id()
+		# See if the push changed something in the master branch
+		git.reset('master')
+		current_id = git.id()
+		git.fetch()
+		git.reset('origin/master')
+		new_id = git.id()
 
 		if current_id != new_id:
-			self.log.write('The default branch has new changesets.\n')
+			self.log.write('The master branch has no new commits.\n')
 
 			# Make a new development snapshot
 			builder = snapshotbuilder.SnapshotBuilder(new_id, self.log)
@@ -35,14 +35,14 @@ class RevisionPushed():
 			self.queue.put(95, builder)
 
 			# See if something in the docs directory has changed
-			log = hg.log('docs', current_id, new_id, '{node|short}')
+			log = git.log('docs', current_id, new_id, 'oneline')
 			if len(log) > 1 or (len(log) == 1 and log[0] != current_id):
 				# TODO: Remove all other doc builders from the queue
 				builder = docbuilder.DocBuilder(new_id, self.log)
 				self.queue.put(80, builder)
 
 		else:
-			self.log.write('The default branch has no new changesets.\n')
+			self.log.write('The master branch has no new commits.\n')
 
 		# TODO: Make a release if the version changed
 

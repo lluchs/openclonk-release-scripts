@@ -1,7 +1,7 @@
 import os
 import ftptool
 import posixpath
-import hg
+import git
 import make
 import sys
 import datetime
@@ -111,7 +111,7 @@ class DocBuilder():
 		# TODO: Exception safety
 		self.log.write('updating from repository... ')
 		starttime = datetime.datetime.now()
-		hg.update(self.revision)
+		git.reset(self.revision)
 		timedelta = datetime.datetime.now() - starttime
 		self.log.write('done. (took '+ str(total_seconds(timedelta)) +'s) \n')
 
@@ -122,7 +122,7 @@ class DocBuilder():
 		make.run('docs')
 		timedelta = datetime.datetime.now() - starttime
 		self.log.write('done. (took '+ str(total_seconds(timedelta)) +'s) \n')
-		hg.revert('docs')
+		git.reset('master') # Revert possible modifications to .po files
 		
 		username = 'ftp1144497-docs'
 		passwd = open('../passwd/docs.txt', 'r').read().strip()

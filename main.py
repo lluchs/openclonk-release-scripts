@@ -1,7 +1,7 @@
 import os
 import sys
 
-import hg
+import git
 import log
 import releasebuilder
 import snapshotbuilder
@@ -15,7 +15,7 @@ class BuildServer():
 
 		if not os.path.exists('openclonk'):
 			self.log.write('Openclonk Repository does not exist. Cloning...\n')
-			hg.clone('http://hg.openclonk.org/openclonk')
+			git.clone('git://git.openclonk.org/openclonk')
 			self.log.write('Repository created\n')
 
 		os.chdir('openclonk')
@@ -67,8 +67,8 @@ try:
 
 #	server.make_release('14ab9fe1345a') # 5.2.2
 #	server.make_release('4c71d5edfb06') # 5.2.0
-#	server.make_snapshot(hg.id())
-#	server.make_docs(hg.id())
+#	server.make_snapshot('master')
+#	server.make_docs('master')
 	server.run()
 
 except Exception as ex:

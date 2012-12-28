@@ -3,7 +3,7 @@ import re
 import shutil
 import tarfile
 
-import hg
+import git
 import arches
 import c4group
 import contentiter
@@ -95,7 +95,7 @@ class ReleaseBuilder():
 	def __call__(self):
 		self.log.write('Releasing revision %s...\n' % self.revision)
 
-		hg.update(self.revision)
+		git.reset(self.revision)
 		(major, minor, micro) = self.parse_version_file('Version.txt')
 
 		self.log.write('==> Version %d.%d.%d\n' % (major, minor, micro))
