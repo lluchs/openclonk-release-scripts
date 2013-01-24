@@ -59,7 +59,7 @@ class SnapshotBuilder():
 				for name, stream in contentiter.ContentIter():
 					add_to_archive(archive, name, stream.read())
 
-				arch_iter = architer.ArchIter(arch)
+				arch_iter = architer.ArchIter(arch, revhash)
 				for name, stream in arch_iter:
 					add_to_archive(archive, name, stream.read())
 				uuid = arch_iter.uuid

@@ -191,7 +191,7 @@ class ReleaseBuilder():
 
 			# Copy both binaries and dependencies into archive. 
 			binaries = []
-			for filename, stream in architer.ArchIter(arch):
+			for filename, stream in architer.ArchIter(arch, revision):
 				open(os.path.join(archdir, filename), 'w').write(stream.read())
 				if architer.ArchIter.is_executable(filename):
 					os.chmod(os.path.join(archdir, filename), 0755)

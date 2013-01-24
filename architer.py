@@ -8,20 +8,26 @@ import c4group
 class ArchIter():
 	@staticmethod
 	def is_executable(filename):
-		return filename.startswith('clonk') or filename.startswith('c4group')
+		return filename.startswith('clonk') or filename.startswith('c4group') or filename.startswith('mape')
 
-	def __init__(self, arch):
+	def __init__(self, arch, revision):
 		self.arch = arch
-		self.revision = git.id() # for autobuilds
+		self.revision = revision
 		self.index = 0
 
+		build_type = 'engine' # can be engine or mape
 		self.files = []
-		self.files.extend([
-			{'type': 'autobuild', 'executable': 'clonk'},
-			{'type': 'autobuild', 'executable': 'c4group'}])
+
+		if build_type == 'engine':
+			self.files.extend([
+				{'type': 'autobuild', 'executable': 'clonk'},
+				{'type': 'autobuild', 'executable': 'c4group'}])
+		else:
+			self.files.extend([
+				{'type': 'autobuild', 'executable': 'mape'}])
 
 		# Copy dependencies
-		depdir = os.path.join('../dependencies', arch)
+		depdir = os.path.join('../dependencies-%s' % build_type, arch)
 		try:
 			dependencies = os.listdir(depdir)
 		except:
@@ -41,6 +47,7 @@ class ArchIter():
 		self.index += 1
 
 		if item['type'] == 'file':
+			# TODO: Take sub-directories into account properly, don't just take the file basename
 			filename = os.path.basename(item['path'])
 			stream = open(item['path'], 'r')
 		elif item['type'] == 'autobuild':
