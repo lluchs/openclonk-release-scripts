@@ -10,15 +10,14 @@ class ArchIter():
 	def is_executable(filename):
 		return filename.startswith('clonk') or filename.startswith('c4group') or filename.startswith('mape')
 
-	def __init__(self, arch, revision):
+	def __init__(self, arch, revision, build_type):
 		self.arch = arch
 		self.revision = revision
 		self.index = 0
 
-		build_type = 'engine' # can be engine or mape
 		self.files = []
 
-		if build_type == 'engine':
+		if build_type == 'openclonk':
 			self.files.extend([
 				{'type': 'autobuild', 'executable': 'clonk'},
 				{'type': 'autobuild', 'executable': 'c4group'}])
@@ -29,12 +28,13 @@ class ArchIter():
 		# Copy dependencies
 		depdir = os.path.join('../dependencies-%s' % build_type, arch)
 		try:
-			dependencies = os.listdir(depdir)
+			dependencies = os.walk(depdir)
 		except:
 			dependencies = []
 
-		for dep in dependencies:
-			self.files.append({'type': 'file', 'path':  os.path.join(depdir, dep)})
+		for dirpath, dirnames, filenames in dependencies:
+			for filename in filenames:
+				self.files.append({'type': 'file', 'path':  os.path.join(dirpath, filename), 'directory': os.path.relpath(dirpath, depdir)})
 
 	def __iter__(self):
 		 return self
@@ -48,7 +48,10 @@ class ArchIter():
 
 		if item['type'] == 'file':
 			# TODO: Take sub-directories into account properly, don't just take the file basename
-			filename = os.path.basename(item['path'])
+			if item['directory'] != '.':
+				filename = item['directory'] + '/' + os.path.basename(item['path'])
+			else:
+				filename = os.path.basename(item['path'])
 			stream = open(item['path'], 'r')
 		elif item['type'] == 'autobuild':
 			# TODO: Make only one request for all autobuild types.

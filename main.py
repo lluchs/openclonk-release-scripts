@@ -48,7 +48,8 @@ class BuildServer():
 
 	def make_snapshot(self, revision):
 		try:
-			builder = snapshotbuilder.SnapshotBuilder(revision, self.log)
+			builder = snapshotbuilder.SnapshotBuilder(revision, self.log, 'openclonk')
+			#builder = snapshotbuilder.SnapshotBuilder(revision, self.log, 'mape')
 			builder()
 		except Exception as ex:
 			self.log.write('Failed to create snapshot for revision %s: %s\n' % (revision, ex))

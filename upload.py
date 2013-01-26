@@ -26,7 +26,7 @@ class Uploader():
 		else:
 			raise Exception('Unsupported architecture: %s' % arch)
 
-	def nightly_file(self, filename, stream, uuid, hgid, arch):
+	def nightly_file(self, build_type, filename, stream, uuid, hgid, arch):
 		if stream is not None:
 			# If stream is nil the build failed
 			self.log.write('Uploading nightly file %s...\n' % os.path.basename(filename))
@@ -52,6 +52,7 @@ class Uploader():
 
 		# Now call the nightly page
 		parameters = {
+			'type': build_type,
 			'hgid': hgid,
 			'uuid': uuid,
 			'digest': filehash,

@@ -30,9 +30,15 @@ class RevisionPushed():
 			self.log.write('The master branch has no new commits.\n')
 
 			# Make a new development snapshot
-			builder = snapshotbuilder.SnapshotBuilder(new_id, self.log)
+			builder = snapshotbuilder.SnapshotBuilder(new_id, self.log, 'openclonk')
 			# TODO: Remove all other snapshot builders from the queue
-			self.queue.put(95, builder)
+			self.queue.put(50, builder)
+
+			# Also make a new mape build. In principle we could do this only if something in the
+			# mape directory or any of the other files used by mape change, but let's keep it simple here.
+			builder = snapshotbuilder.SnapshotBuilder(new_id, self.log, 'mape')
+			# TODO: Remove all other snapshot builders from the queue
+			self.queue.put(70, builder)
 
 			# See if something in the docs directory has changed
 			log = git.log('docs', current_id, new_id, 'oneline')
@@ -102,7 +108,7 @@ class PushTrigger(trigger.Trigger):
 	def oc_release_release(self, user, digest, revision):
 		try:
 			self.consume_ticket(user, digest)
-			self.queue.put(50, releasebuilder.ReleaseBuilder(revision, self.log))
+			self.queue.put(30, releasebuilder.ReleaseBuilder(revision, self.log))
 			return True
 		except Exception, ex:
 			return False, str(ex)
