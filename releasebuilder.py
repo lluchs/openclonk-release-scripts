@@ -77,7 +77,7 @@ class ReleaseBuilder():
 			# different location but that's OK for now
 			pwd = os.getcwd()
 			os.chdir(directory)
-			nsis.run(pwd, '../' + basename, '-amd64-' in arch, items['C4ENGINENAME'] + items['C4VERSIONBUILDNAME'], items['C4PROJECT'], 'clonk.exe', 'c4group.exe')
+			nsis.run(pwd, '../' + basename, '-amd64-' in arch, items['C4ENGINENAME'] + items['C4VERSIONBUILDNAME'], items['C4PROJECT'], 'openclonk.exe', 'c4group.exe')
 			os.chdir(pwd)
 
 			shutil.rmtree(directory)

@@ -8,7 +8,7 @@ import c4group
 class ArchIter():
 	@staticmethod
 	def is_executable(filename):
-		return filename.startswith('clonk') or filename.startswith('c4group') or filename.startswith('mape')
+		return filename.startswith('openclonk') or filename.startswith('c4group') or filename.startswith('mape')
 
 	def __init__(self, arch, revision, build_type):
 		self.arch = arch
@@ -19,7 +19,7 @@ class ArchIter():
 
 		if build_type == 'openclonk':
 			self.files.extend([
-				{'type': 'autobuild', 'executable': 'clonk'},
+				{'type': 'autobuild', 'executable': 'openclonk'},
 				{'type': 'autobuild', 'executable': 'c4group'}])
 		else:
 			self.files.extend([
