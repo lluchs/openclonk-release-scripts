@@ -49,7 +49,7 @@ class SnapshotBuilder():
 				uploader.nightly_file(self.build_type, archive_filename, archive_stream, uuid, revhash[:10], arch)
 			except autobuild.AutobuildException as ex:
 				# make an entry for "failed build"
-				archive_filename = archive_name(filename)
+				archive_filename = archive_obj.get_filename(filename)
 				uploader = upload.Uploader(self.log)
 				uploader.nightly_file(self.build_type, archive_filename, None, ex.uuid, revhash[:10], arch)
 
