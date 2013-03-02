@@ -20,6 +20,8 @@ class SnapshotBuilder():
 
 	def __call__(self):
 		# TODO: Exception safety
+		# TODO: If a branch name is given, checkout the branch from remote
+		# TODO: Reset back to 'origin/master' afterwards
 		git.reset(self.revision)
 		revhash = git.id()
 
@@ -45,12 +47,12 @@ class SnapshotBuilder():
 				archive_stream.seek(0)
 
 				uuid = arch_iter.uuid
-				uploader = upload.Uploader(self.log)
+				uploader = upload.Uploader(self.log, False)
 				uploader.nightly_file(self.build_type, archive_filename, archive_stream, uuid, revhash[:10], arch)
 			except autobuild.AutobuildException as ex:
 				# make an entry for "failed build"
 				archive_filename = archive_obj.get_filename(filename)
-				uploader = upload.Uploader(self.log)
+				uploader = upload.Uploader(self.log, False)
 				uploader.nightly_file(self.build_type, archive_filename, None, ex.uuid, revhash[:10], arch)
 
 		return True

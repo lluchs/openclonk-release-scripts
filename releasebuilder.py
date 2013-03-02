@@ -98,14 +98,27 @@ class ReleaseBuilder():
 
 	# TODO: Make this use smaller chunks, and proper cleanup in error cases (try/finally)
 	def __call__(self):
-		self.log.write('Releasing revision %s...\n' % self.revision)
+		dry_release = False
 
+		if dry_release:
+			self.log.write('Releasing revision %s...\n' % self.revision)
+		else:
+			self.log.write('Dry-Releasing revision %s...\n' % self.revision)
+
+		# Update to revision and get hexadecimal ID.
+		# TODO: If a branch name is given, checkout the branch from remote
+		# TODO: Reset back to 'origin/master' afterwards
+		git.fetch()
 		git.reset(self.revision)
+		revision = git.id()[:12]
+
 		(major, minor, micro) = self.parse_version_file('Version.txt')
 
 		self.log.write('==> Version %d.%d.%d\n' % (major, minor, micro))
 
-		archive = os.path.join(self.archive_dir, '%d.%d.%d' % (major, minor, micro))
+		dry_suffix = ''
+		if dry_release: dry_suffix = '-dry'
+		archive = os.path.join(self.archive_dir, '%d.%d.%d%s' % (major, minor, micro, dry_suffix))
 
 		if os.path.exists(archive):
 			self.log.write('Archive directory %s exists already. Clearing...\n' % archive)
@@ -256,7 +269,7 @@ class ReleaseBuilder():
 
 		# TODO: Create a source tarball
 
-		uploader = upload.Uploader(self.log)
+		uploader = upload.Uploader(self.log, dry_release)
 		for arch in all_files:
 			files = all_files[arch]
 			assert 'full' in files
@@ -268,4 +281,7 @@ class ReleaseBuilder():
 				uploader.release_file(files['update'], arch, (major, minor, micro), files['old_versions'])
 				os.unlink(files['update'])
 
+		# Remove the archive if this was a dry release
+		if dry_release:
+			shutil.rmtree(archive)
 		return True

@@ -6,13 +6,13 @@ import ftplib
 import StringIO
 
 class Uploader():
-	def __init__(self, log):
+	def __init__(self, log, dry_release):
 		self.log = log
 
 		self.release_key = open('../keys/key-boom.txt').read().strip()
 		self.nightly_key = open('../keys/key-ck.txt').read().strip()
 
-		self.dry_release = False
+		self.dry_release = dry_release
 
 	def get_masterserver_archname(self, arch):
 		if arch.startswith('win32-i386-'):
