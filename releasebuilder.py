@@ -101,9 +101,9 @@ class ReleaseBuilder():
 		dry_release = False
 
 		if dry_release:
-			self.log.write('Releasing revision %s...\n' % self.revision)
-		else:
 			self.log.write('Dry-Releasing revision %s...\n' % self.revision)
+		else:
+			self.log.write('Releasing revision %s...\n' % self.revision)
 
 		# Update to revision and get hexadecimal ID.
 		# TODO: If a branch name is given, checkout the branch from remote
