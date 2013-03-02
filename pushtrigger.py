@@ -20,7 +20,7 @@ class RevisionPushed():
 		self.log.write('New changesets have been pushed.\n')
 
 		# See if the push changed something in the master branch
-		git.reset('master')
+		git.reset('origin/master')
 		current_id = git.id()
 		git.fetch()
 		git.reset('origin/master')
