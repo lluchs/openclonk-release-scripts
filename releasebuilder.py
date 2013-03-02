@@ -143,6 +143,7 @@ class ReleaseBuilder():
 
 		# Create content update
 		old_versions = filter(lambda x: self.can_update(x, (major, minor, micro)), map(lambda x: self.parse_version_number(x), available_versions))
+		supported_versions = []
 
 		if len(old_versions) > 0:
 			self.log.write('Old versions found: %s\n' % str(old_versions))
@@ -154,7 +155,6 @@ class ReleaseBuilder():
 			open(os.path.join(update, 'AutoUpdate.txt'), 'w').write("")
 
 			# Run through old versions
-			supported_versions = []
 			for old_major,old_minor,old_micro in old_versions:
 				self.log.write('Creating update from version %d.%d.%d...\n' % (old_major, old_minor, old_micro))
 				old_archive = os.path.join(self.archive_dir, '%d.%d.%d' % (old_major, old_minor, old_micro))
