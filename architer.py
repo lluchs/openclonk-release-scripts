@@ -8,7 +8,7 @@ import c4group
 class ArchIter():
 	@staticmethod
 	def is_executable(filename):
-		return filename.startswith('openclonk') or filename.startswith('c4group') or filename.startswith('mape')
+		return filename.startswith('openclonk') or filename.startswith('clonk') or filename.startswith('c4group') or filename.startswith('mape')
 
 	def __init__(self, arch, revision, build_type):
 		self.arch = arch

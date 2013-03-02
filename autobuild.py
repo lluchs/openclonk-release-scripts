@@ -82,7 +82,9 @@ def obtain_impl(revision, arch, binaries, have_queued):
 
 									if binary.nodeName == 'binary':
 										bin_type = binary.getAttribute('type')
-										if bin_type in map(lambda x: 'make: ' + x, binaries):
+										tmp_binaries = binaries[:]
+										if 'openclonk' in tmp_binaries: tmp_binaries.append('clonk') # backwards compatibility
+										if bin_type in map(lambda x: 'make: ' + x, tmp_binaries):
 											hrefs[bin_type[6:]] = binary.getAttribute('href')
 								if len(hrefs) != len(binaries):
 									raise Exception('Autobuilder did not build all requested binaries')
