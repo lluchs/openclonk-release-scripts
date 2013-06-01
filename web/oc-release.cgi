@@ -21,6 +21,8 @@ message_type = 'MessageSuccess'
 message_text = ''
 
 try:
+	raise Exception('Release button currently out of order!')
+
 	params = action.split('&')
 	param_map = {}
 	for param in params:

@@ -1,7 +1,5 @@
-import SimpleXMLRPCServer
-import random
-import hashlib
-import hmac
+import pika
+import json
 import os
 
 import trigger
@@ -11,10 +9,11 @@ import releasebuilder
 import docbuilder
 
 class RevisionPushed():
-	def __init__(self, queue, log):
+	def __init__(self, queue, log, revision):
 		self.queue = queue
 		self.log = log
-		self.name = 'Analyze new commits'
+		self.revision = revision
+		self.name = 'Analyze new commits after being notified about commit %s' % revision
 
 	def __call__(self):
 		self.log.write('New changesets have been pushed.\n')
@@ -23,28 +22,27 @@ class RevisionPushed():
 		git.reset('origin/master')
 		current_id = git.id()
 		git.fetch()
-		git.reset('origin/master')
-		new_id = git.id()
+		git.reset(self.revision)
 
-		if current_id != new_id:
-			self.log.write('The master branch has no new commits.\n')
+		if current_id != self.revision:
+			self.log.write('The master branch has new commits.\n')
 
 			# Make a new development snapshot
-			builder = snapshotbuilder.SnapshotBuilder(new_id, self.log, 'openclonk')
+			builder = snapshotbuilder.SnapshotBuilder(self.revision, self.log, 'openclonk')
 			# TODO: Remove all other snapshot builders from the queue
 			self.queue.put(50, builder)
 
 			# Also make a new mape build. In principle we could do this only if something in the
 			# mape directory or any of the other files used by mape change, but let's keep it simple here.
-			builder = snapshotbuilder.SnapshotBuilder(new_id, self.log, 'mape')
+			builder = snapshotbuilder.SnapshotBuilder(self.revision, self.log, 'mape')
 			# TODO: Remove all other snapshot builders from the queue
 			self.queue.put(70, builder)
 
 			# See if something in the docs directory has changed
-			log = git.log('docs', current_id, new_id, 'oneline')
+			log = git.log('docs', current_id, self.revision, 'oneline')
 			if len(log) > 1 or (len(log) == 1 and log[0] != current_id):
 				# TODO: Remove all other doc builders from the queue
-				builder = docbuilder.DocBuilder(new_id, self.log)
+				builder = docbuilder.DocBuilder(self.revision, self.log)
 				self.queue.put(80, builder)
 
 		else:
@@ -56,66 +54,61 @@ class RevisionPushed():
 
 class PushTrigger(trigger.Trigger):
 	def __init__(self, queue, log):
+		self.sslkey = os.path.normpath(os.path.join(os.getcwd(), '../keys/ockey.pem'))
+		self.sslcert = os.path.normpath(os.path.join(os.getcwd(), '../keys/CIA-londeroth.org.pem'))
 		trigger.Trigger.__init__(self, queue, log)
-		# Note we need the key path in its absolute form since the main thread
-		# can change the current working directory, for example for NSIS invocation
-		self.key_path = os.path.normpath(os.path.join(os.getcwd(), '../keys'))
-		self.tickets = {}
 
-	def read_key(self, user):
-		return open(os.path.join(self.key_path, 'key-%s.txt' % user), 'r').read().strip()
-
-	def consume_ticket(self, user, digest):
-		if user not in self.tickets:
-			raise Exception('No ticket has been issued for user %s' % user)
-
-		ticket = self.tickets[user]
-		del self.tickets[user]
-
-		ticket_digest = hmac.new(self.read_key(user), ticket, hashlib.sha256).hexdigest()
-		if ticket_digest != digest:
-			raise Exception('Digest mismatch: Ticket digest is "%s", but "%s" was provided' % (ticket_digest, digest))
-
-	def oc_release_build_ticket(self, user):
+	def oc_release_build(self, channel, method, properties, payload):
 		try:
-			# We don't need the key here, but this throws an
-			# exception if we do not know the given user, not
-			# issuing a ticket at all in this case.
-			key = self.read_key(user)
-
-			ticket = ''.join(map(lambda x: "%c" % random.randrange(32, 128), [0]*random.randint(10,16)))
-
-			# TODO: Ticket expiry
-			self.tickets[str(user)] = ticket
-
-			return ticket
-		except Exception, ex:
-			return False, str(ex)
-
-
-	def oc_release_build(self, user, digest):
-		try:
-			self.consume_ticket(user, digest)
+			ref_update = json.loads(payload)
+			# The routing key should already have ensured we're only getting
+			# updates about the master branch
+			assert ref_update['ref'] == 'refs/heads/master'
 
 			# High priority to handle this revision push, it
 			# will then queue the actual builders after
 			# examining the nature of the new commits.
-			self.queue.put(0, RevisionPushed(self.queue, self.log))
+			self.queue.put(0, RevisionPushed(self.queue, self.log, ref_update['commit']))
+			channel.basic_ack(method.delivery_tag)
+			return True
+		except Exception, ex:
+			channel.basic_reject(method.delivery_tag, requeue=False)
+			return False, str(ex)
+
+	def oc_release_release(self, channel, method, properties, payload):
+		try:
+			ref_update = json.loads(payload)
+			# The routing key should ensure that we're only getting tag
+			# updates
+			if not ref_update['ref'].startswith('refs/tags/v'):
+				raise ValueError('Not a release version tag')
+			self.queue.put(30, releasebuilder.ReleaseBuilder(ref_update['commit'], self.log))
 			return True
 		except Exception, ex:
 			return False, str(ex)
 
-	def oc_release_release(self, user, digest, revision):
-		try:
-			self.consume_ticket(user, digest)
-			self.queue.put(30, releasebuilder.ReleaseBuilder(revision, self.log))
-			return True
-		except Exception, ex:
-			return False, str(ex)
+	@staticmethod
+	def bind_to_exchange(channel, exchange, routing_key="", callback=None):
+		# Create a new, anonymous queue to consume from
+		queue = channel.queue_declare(exclusive=True).method.queue
+		# Bind queue to exchange with the specified routing key
+		channel.queue_bind(exchange=exchange, queue=queue, routing_key=routing_key)
+		# Start consuming if there's a callback provided
+		if callback:
+			channel.basic_consume(callback, queue=queue)
+		return queue
 
 	def __call__(self):
-		server = SimpleXMLRPCServer.SimpleXMLRPCServer(('', 8000))
-		server.register_function(self.oc_release_build_ticket, 'oc_release_build_ticket')
-		server.register_function(self.oc_release_build, 'oc_release_build')
-		server.register_function(self.oc_release_release, 'oc_release_release')
-		server.serve_forever()
+		amqp_params = pika.ConnectionParameters(
+			host='amqp.nosebud.de',
+			port=5671,
+			virtual_host='openclonk',
+			ssl=True,
+			ssl_options={'keyfile': self.sslkey, 'certfile': self.sslcert},
+			credentials=pika.credentials.ExternalCredentials(),
+			)
+		amqp_connection = pika.BlockingConnection(amqp_params)
+		amqp_channel = amqp_connection.channel()
+		self.bind_to_exchange(amqp_channel, 'occ.ref', 'openclonk.heads.master', self.oc_release_build)
+		self.bind_to_exchange(amqp_channel, 'occ.ref', 'openclonk.tags.*', self.oc_release_release)
+		amqp_channel.start_consuming()
