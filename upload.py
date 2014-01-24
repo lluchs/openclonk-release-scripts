@@ -97,7 +97,7 @@ class Uploader():
 			
 	def release_binaries(self, filename, arch, (major, minor, micro), oldversions):
 		(remote_filename, filehash) = self.release_file(filename, (major, minor, micro))
-		if !self.dry_release:
+		if not self.dry_release:
 		
 			self.log.write('Registering with masterserver %s...\n' % os.path.basename(filename))
 			# Register the uploaded file with the masterserver
