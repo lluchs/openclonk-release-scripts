@@ -8,6 +8,7 @@ import snapshotbuilder
 import docbuilder
 import notifyqueue
 import pushtrigger
+import xmltrigger
 
 class BuildServer():
 	def __init__(self):
@@ -23,6 +24,7 @@ class BuildServer():
 		# Register triggers
 		self.queue = notifyqueue.NotifyQueue()
 		self.pushtrigger = pushtrigger.PushTrigger(self.queue, self.log)
+		self.xmltrigger = xmltrigger.XMLTrigger(self.queue, self.log)
 
 	def run(self):
 		# Run main event loop

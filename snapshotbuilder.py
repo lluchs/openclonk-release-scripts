@@ -31,6 +31,8 @@ class SnapshotBuilder():
 			filename = '%s-snapshot-%s-%s-%s' % (self.build_type, date, revhash[:10], arch)
 
 			try:
+				#macbuilder = macbuilder.MacBuilder(revhash) # autobuilder in other cases
+
 				archive_stream = StringIO.StringIO()
 				archive_obj = archive.Archive(arch, archive_stream)
 
