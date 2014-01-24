@@ -67,7 +67,7 @@ class Uploader():
 		if response.getcode() != 200:
 			raise Exception('Upload failed: %s' % response.read())
 
-	def release_file(self, filename, arch, (major, minor, micro), oldversions):
+	def release_file(self, filename, (major, minor, micro)):
 		self.log.write('Uploading release file %s...\n' % os.path.basename(filename))
 
 		if self.dry_release:
@@ -93,6 +93,13 @@ class Uploader():
 
 			ftp.storbinary('STOR %s' % remote_filename, open(filename, 'r'))
 
+			return remote_filename, filehash
+			
+	def release_binaries(self, filename, arch, (major, minor, micro), oldversions):
+		(remote_filename, filehash) = self.release_file(filename, (major, minor, micro))
+		if !self.dry_release:
+		
+			self.log.write('Registering with masterserver %s...\n' % os.path.basename(filename))
 			# Register the uploaded file with the masterserver
 			parameters = {
 				'action': 'release-file',

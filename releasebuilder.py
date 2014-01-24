@@ -270,15 +270,19 @@ class ReleaseBuilder():
 		# TODO: Create a source tarball
 
 		uploader = upload.Uploader(self.log, dry_release)
+		
+		# TODO uncomment when source tarball created
+		#uploader.release_file(source_package_filename, (major, minor, micro))
+		
 		for arch in all_files:
 			files = all_files[arch]
 			assert 'full' in files
 
-			uploader.release_file(files['full'], arch, (major, minor, micro), [])
+			uploader.release_binaries(files['full'], arch, (major, minor, micro), [])
 			os.unlink(files['full'])
 
 			if 'update' in files:
-				uploader.release_file(files['update'], arch, (major, minor, micro), files['old_versions'])
+				uploader.release_binaries(files['update'], arch, (major, minor, micro), files['old_versions'])
 				os.unlink(files['update'])
 
 		# Remove the archive if this was a dry release
