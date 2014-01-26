@@ -76,6 +76,8 @@ class Uploader():
 
 			content = open(filename, 'r').read()
 			open(target_path, 'w').write(content)
+
+			return target_path, None
 		else:
 			filehash = hmac.new(self.release_key, open(filename, 'r').read(), hashlib.sha256).hexdigest() # TODO: strip?
 
