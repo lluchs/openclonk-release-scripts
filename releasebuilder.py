@@ -5,6 +5,7 @@ import tarfile
 
 import git
 import arches
+import groupcontent
 import c4group
 import contentiter
 import architer
@@ -131,7 +132,7 @@ class ReleaseBuilder():
 		self.log.write('Copying and packing game content to archive...\n')
 		content = [] # game content
 		others  = [] # other misc. non-architecture dependent files
-		for filename, stream in contentiter.ContentIter():
+		for filename, stream in contentiter.ContentIter(groupcontent.release):
 			self.log.write('%s...\n' % filename)
 			if contentiter.ContentIter.is_content_file(filename):
 				content.append(filename)

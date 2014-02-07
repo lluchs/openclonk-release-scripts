@@ -4,6 +4,7 @@ import StringIO
 
 import git
 import arches
+import groupcontent
 import archive
 import autobuild
 import upload
@@ -37,7 +38,7 @@ class SnapshotBuilder():
 				archive_obj = archive.Archive(arch, archive_stream)
 
 				if self.build_type == 'openclonk':
-					for name, stream in contentiter.ContentIter():
+					for name, stream in contentiter.ContentIter(groupcontent.snapshot):
 						archive_obj.add(name, stream.read())
 
 				arch_iter = architer.ArchIter(arch, revhash, self.build_type)
