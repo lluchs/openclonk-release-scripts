@@ -175,10 +175,13 @@ print """
    <div id="Checklist">
    <h3>Release Checklist</h3>
    <ul>
-     <li><b>Update our releases on <a href="http://www.desura.com/games/publish/openclonk/execute">desura.com</a></b> through the link at the bottom of the linked page. <br/>Not registered? At least Newton can add you to the group of OpenClonk Developers on Desura.</li>
+     <li>Notify an openclonk.org admin to <b>upload the source package</b> that <a href="https://git.openclonk.org/openclonk.git/archive/">Isilkor will have generated</a> into the archive on openclonk.org. (The release scripts don't do this automatically yet.)</li>
+     <li><b>Notify Mortimer</b> about the release. He might want to supply us with a Mac binary. Only an openclonk.org admin can upload it. (The release scripts don't create Mac packages automatically yet.)</li>
+     <li><b>Update our releases on <a href="http://www.desura.com/games/publish/openclonk/execute">desura.com</a></b> through the link at the bottom of the linked page. To generate the so called &quot;branch releases&quot; (Desura update packages), you need to install the Desura Desktop application and you need to run a Linux to create the Linux branch releases.<br/>Not registered? Drop a note in the internal board to be added to the group of OpenClonk Developers on Desura. </li>
      <li><b>Update our entry on <a href="http://www.ccan.de">ccan.de</a></b>. <br/>Forgot the password? Look it up in our internal board.</li>
      <li><b>Notify our Debian package maintainer</b> that a new version has been released.</li>
-     <li><b>Make announcements</b> in our forum, in our blog and optionally in the <a href="http://www.clonk.de/forum/de">clonk.de</a> forum, in the clonk-center and other forums.</li>
+     <li><b>Make announcements</b> in our blog and optionally in our forum, the <a href="http://www.clonk.de/forum/de">clonk.de</a> forum, in the clonk-center and other forums.</li>
+     <li>Notify an openclonk.org admin to <b>mark this version as released in the bugtracker</b> and add the next version so the version info of future bugs can be set correctly.</li>
    </ul>
    </div>
    %(message)s
