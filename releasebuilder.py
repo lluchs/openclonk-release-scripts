@@ -134,7 +134,7 @@ class ReleaseBuilder():
 		others  = [] # other misc. non-architecture dependent files
 		for filename, stream in contentiter.ContentIter(groupcontent.release):
 			self.log.write('%s...\n' % filename)
-			if contentiter.ContentIter.is_content_file(filename):
+			if contentiter.ContentIter.is_group_file(filename):
 				content.append(filename)
 			else:
 				others.append(filename)
@@ -159,7 +159,7 @@ class ReleaseBuilder():
 			for old_major,old_minor,old_micro in old_versions:
 				self.log.write('Creating update from version %d.%d.%d...\n' % (old_major, old_minor, old_micro))
 				old_archive = os.path.join(self.archive_dir, '%d.%d.%d' % (old_major, old_minor, old_micro))
-				old_files = filter(lambda x: contentiter.ContentIter.is_content_file(x), os.listdir(old_archive))
+				old_files = filter(lambda x: contentiter.ContentIter.is_group_file(x), os.listdir(old_archive))
 
 				# Check that all previous files are available
 				# in the current version. C4Update does not
