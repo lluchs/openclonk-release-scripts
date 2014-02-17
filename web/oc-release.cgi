@@ -173,9 +173,14 @@ print """
      </form>
    </div>
    <div id="Checklist">
-   <h3>Release Checklist</h3>
+   <h3>Pre Release Checklist</h3>
    <ul>
-     <li>Notify an openclonk.org admin to <b>upload the source package</b> that <a href="https://git.openclonk.org/openclonk.git/archive/">Isilkor will have generated</a> into the archive on openclonk.org. (The release scripts don't do this automatically yet.)</li>
+     <li>Dont forget to <b>increase the version number</b> in Version.txt.</li>
+     <li><b>Create a tag</b> for the release.</li>
+   </ul>
+   <h3>Post Release Checklist</h3>
+   <ul>
+     <li>Notify an openclonk.org admin to <b>upload the source package</b> that <a href="https://git.openclonk.org/openclonk.git/archive/">Isilkor will have generated</a> into the archive on openclonk.org. (The release scripts don't do this automatically yet.) His source packages still contain Tests.ocf, Experimental.ocf etc. They must be removed from the package uploaded on openclonk.org</li>
      <li><b>Notify Mortimer</b> about the release. He might want to supply us with a Mac binary. Only an openclonk.org admin can upload it. (The release scripts don't create Mac packages automatically yet.)</li>
      <li><b>Update our releases on <a href="http://www.desura.com/games/publish/openclonk/execute">desura.com</a></b> through the link at the bottom of the linked page. To generate the so called &quot;branch releases&quot; (Desura update packages), you need to install the Desura Desktop application and you need to run a Linux to create the Linux branch releases.<br/>Not registered? Drop a note in the internal board to be added to the group of OpenClonk Developers on Desura. </li>
      <li><b>Update our entry on <a href="http://www.ccan.de">ccan.de</a></b>. <br/>Forgot the password? Look it up in our internal board.</li>
