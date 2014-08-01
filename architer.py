@@ -5,6 +5,10 @@ import git
 import autobuild
 import c4group
 
+import urllib
+import zipfile
+import StringIO
+
 class ArchIter():
 	@staticmethod
 	def is_executable(filename):
@@ -25,16 +29,19 @@ class ArchIter():
 			self.files.extend([
 				{'type': 'autobuild', 'executable': 'mape'}])
 
-		# Copy dependencies
-		depdir = os.path.join('../dependencies-%s' % build_type, arch)
-		try:
-			dependencies = os.walk(depdir)
-		except:
-			dependencies = []
+		# TODO: For mape, add the mape-syntax files
 
-		for dirpath, dirnames, filenames in dependencies:
-			for filename in filenames:
-				self.files.append({'type': 'file', 'path':  os.path.join(dirpath, filename), 'directory': os.path.relpath(dirpath, depdir)})
+		# Copy dependencies
+		if 'win32' in arch:
+			deps_dir = '%s-deps-%s' % (build_type, arch)
+			dep_url = 'https://git.openclonk.org/static/autobuild/%s.zip' % deps_dir
+			response = urllib.urlopen(dep_url)
+			if response.getcode() != 200:
+				raise Exception('Failed to download dependencies: %s' % response.read())
+			responseText = response.read()
+			deps = zipfile.ZipFile(file = StringIO.StringIO(responseText), mode = 'r')
+			for name in deps.namelist():
+				self.files.append({'type': 'zipentry', 'obj': deps, 'path':  name, 'directory': os.path.relpath(os.path.dirname(name), deps_dir)})
 
 	def __iter__(self):
 		 return self
@@ -53,6 +60,12 @@ class ArchIter():
 			else:
 				filename = os.path.basename(item['path'])
 			stream = open(item['path'], 'r')
+		elif item['type'] == 'zipentry':
+			if item['directory'] != '.':
+				filename = item['directory'] + '/' + os.path.basename(item['path'])
+			else:
+				filename = os.path.basename(item['path'])
+			stream = item['obj'].open(item['path'], 'r')
 		elif item['type'] == 'autobuild':
 			# TODO: Make only one request for all autobuild types.
 			# We could then also store UUID right from the beginning.
