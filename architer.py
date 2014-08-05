@@ -43,7 +43,8 @@ class ArchIter():
 			responseText = response.read()
 			deps = zipfile.ZipFile(file = StringIO.StringIO(responseText), mode = 'r')
 			for name in deps.namelist():
-				self.files.append({'type': 'zipentry', 'obj': deps, 'path':  name, 'directory': os.path.relpath(os.path.dirname(name), deps_dir)})
+				if not name.endswith('/'):
+					self.files.append({'type': 'zipentry', 'obj': deps, 'path':  name, 'directory': os.path.relpath(os.path.dirname(name), deps_dir)})
 
 	def __iter__(self):
 		 return self
