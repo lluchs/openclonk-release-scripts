@@ -29,9 +29,9 @@ class ArchIter():
 			self.files.extend([
 				{'type': 'autobuild', 'executable': 'mape'}])
 
-		syntax_dir = 'src/mape/mape-syntax'
-		for name in os.listdir(syntax_dir):
-			self.files.append({'type': 'file', 'path': os.path.join(syntax_dir, name), 'directory': 'mape-syntax'})
+			syntax_dir = 'src/mape/mape-syntax'
+			for name in os.listdir(syntax_dir):
+				self.files.append({'type': 'file', 'path': os.path.join(syntax_dir, name), 'directory': 'mape-syntax'})
 
 		# Copy dependencies
 		if 'win32' in arch:
