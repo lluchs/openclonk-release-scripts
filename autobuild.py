@@ -5,6 +5,7 @@ import SOAPpy
 import xml.dom.minidom
 import StringIO
 import gzip
+from backports import lzma
 
 class AutobuildException(Exception):
 	def __init__(self, message, uuid):
@@ -17,14 +18,32 @@ def download_and_extract(hrefs):
 		href = hrefs[bin_type]
 
 		obj = urllib.urlopen('http://hg.openclonk.org%s' % href)
-		obj = StringIO.StringIO(obj.read()) # no longer needed with python 3.2...
-		gzipped = gzip.GzipFile(fileobj=obj, mode='rb')
+		obj = StringIO.StringIO(obj.read()) # no longer needed with python 3.2, but then we need to find a way to guess the file type
 
+		# Guess file type
+		magic_dict = {
+			"\x1f\x8b\x08": lambda x: gzip.GzipFile(fileobj=x, mode='rb'),
+			"\xfd\x37\x7a\x58\x5a\x00": lambda x: lzma.LZMAFile(x, mode='cb')
+		}
+
+		max_magic = max(len(x) for x in magic_dict)
+		file_start = obj.read(max_magic)
+		obj.seek(0)
+
+		zipped = None
+		for magic, ctor in magic_dict.items():
+			if file_start.startswith(magic):
+				zipped = ctor(obj)
+				break;
+
+		if zipped is None:
+			raise Exception('File type not recognized')
+	
 		# Rename to clonk$EXEEXT or c4group$EXEEXT
 		filename, ext = os.path.splitext(href[:-3])
 		filename = bin_type + ext
 
-		files.append((filename, gzipped))
+		files.append((filename, zipped))
 	return files
 
 def firstElement(node):
