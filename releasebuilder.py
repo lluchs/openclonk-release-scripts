@@ -13,10 +13,11 @@ import nsis
 import upload
 
 class ReleaseBuilder():
-	def __init__(self, revision, log):
+	def __init__(self, revision, log, dry_release):
 		self.archive_dir = '../release-archive'
 		self.revision = revision
 		self.log = log
+		self.dry_release = dry_release
 
 		# TODO: Cannot parse version file at this point yet - might
 		# want to take as constructor params.
@@ -99,9 +100,7 @@ class ReleaseBuilder():
 
 	# TODO: Make this use smaller chunks, and proper cleanup in error cases (try/finally)
 	def __call__(self):
-		dry_release = False
-
-		if dry_release:
+		if self.dry_release:
 			self.log.write('Dry-Releasing revision %s...\n' % self.revision)
 		else:
 			self.log.write('Releasing revision %s...\n' % self.revision)
@@ -118,7 +117,7 @@ class ReleaseBuilder():
 		self.log.write('==> Version %d.%d.%d\n' % (major, minor, micro))
 
 		dry_suffix = ''
-		if dry_release: dry_suffix = '-dry'
+		if self.dry_release: dry_suffix = '-dry'
 		archive = os.path.join(self.archive_dir, '%d.%d.%d%s' % (major, minor, micro, dry_suffix))
 
 		if os.path.exists(archive):
@@ -270,7 +269,7 @@ class ReleaseBuilder():
 
 		# TODO: Create a source tarball
 
-		uploader = upload.Uploader(self.log, dry_release)
+		uploader = upload.Uploader(self.log, self.dry_release)
 		
 		# TODO uncomment when source tarball created
 		#uploader.release_file(source_package_filename, (major, minor, micro))
@@ -287,6 +286,6 @@ class ReleaseBuilder():
 				os.unlink(files['update'])
 
 		# Remove the archive if this was a dry release
-		if dry_release:
+		if self.dry_release:
 			shutil.rmtree(archive)
 		return True

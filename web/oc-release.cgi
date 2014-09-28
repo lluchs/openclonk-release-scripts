@@ -32,6 +32,7 @@ try:
 		user = urllib.unquote(param_map['user'])
 		passphrase = urllib.unquote(param_map['passphrase'])
 		revision = urllib.unquote(param_map['revision'])
+		dry_release = 'dry_release' in param_map
 
 		if passphrase.strip() == '': raise Exception('Empty passphrase')
 		if revision.strip() == '': raise Exception('Empty revision')
@@ -41,7 +42,7 @@ try:
 		if type(ticket) != str: raise Exception('No such user')
 
 		digest = hmac.new(passphrase.strip(), ticket, hashlib.sha256).hexdigest()
-		result = proxy.oc_release_release(user, digest, revision)
+		result = proxy.oc_release_release(user, digest, revision, dry_release)
 		if result != True: raise Exception('Not authorized')
 
 		message_type = 'MessageSuccess'
@@ -75,7 +76,7 @@ print """
    #Form {
      background: black url(redbutton.jpg) no-repeat left top;
      width: 269px;
-     height: 370px;
+     height: 400px;
      float: left;
      margin: 20px;
    }
@@ -97,10 +98,14 @@ print """
      width: 140px;
      border: 1px solid grey;
    }
+
+   #Inputs #DryRelease {
+     width: 20px;
+   }
    
    #SubmitButton {
      position: relative;
-     top: 35px;
+     top: 65px;
      left: 84px;
      width: 106px;
      height: 106px;
@@ -167,7 +172,8 @@ print """
         <label for="Passphrase">Passphrase</label>
         <input id="Passphrase" name="passphrase" type="text" required="required"/>
         <label for="Revision">Changeset ID or branch name</label>
-        <input id="Revision" name="revision" type="text" required="required"/>
+        <input id="Revision" name="revision" type="text" required="required"/><br />
+        <input id="DryRelease" name="dry_release" type="checkbox" checked="checked" />Dry Release
       </div>
       <input id="SubmitButton" name="submit_release" type="submit" value="Release"/>
      </form>
@@ -176,6 +182,7 @@ print """
    <h3>Pre Release Checklist</h3>
    <ul>
      <li>Dont forget to <b>increase the version number</b> in Version.txt.</li>
+     <li>Run a <b>Dry</b> Release to make sure the generated files are correct. <a href="http://londeroth.org/~ck/dry-release">Dry Release Area</a></li>
      <li><b>Create a tag</b> for the release.</li>
    </ul>
    <h3>Post Release Checklist</h3>

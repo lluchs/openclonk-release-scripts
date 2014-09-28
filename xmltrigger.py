@@ -46,10 +46,10 @@ class XMLTrigger(trigger.Trigger):
 		except Exception, ex:
 			return False, str(ex)
 
-	def oc_release_release(self, user, digest, revision):
+	def oc_release_release(self, user, digest, revision, dry_release):
 		try:
 			self.consume_ticket(user, digest)
-			self.queue.put(30, releasebuilder.ReleaseBuilder(revision, self.log))
+			self.queue.put(30, releasebuilder.ReleaseBuilder(revision, self.log, dry_release))
 			return True
 		except Exception, ex:
 			return False, str(ex)
