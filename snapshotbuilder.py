@@ -12,10 +12,11 @@ import contentiter
 import architer
 
 class SnapshotBuilder():
-	def __init__(self, revision, log, build_type):
+	def __init__(self, revision, log, build_type, dry_release):
 		self.revision = revision
 		self.log = log
 		self.build_type = build_type
+		self.dry_release = dry_release
 
 		self.name = '%s Development snapshot for revision %s' % (build_type, revision)
 
@@ -50,12 +51,12 @@ class SnapshotBuilder():
 				archive_stream.seek(0)
 
 				uuid = arch_iter.uuid
-				uploader = upload.Uploader(self.log, False)
+				uploader = upload.Uploader(self.log, self.dry_release)
 				uploader.nightly_file(self.build_type, archive_filename, archive_stream, uuid, revhash[:10], arch)
 			except autobuild.AutobuildException as ex:
 				# make an entry for "failed build"
 				archive_filename = archive_obj.get_filename(filename)
-				uploader = upload.Uploader(self.log, False)
+				uploader = upload.Uploader(self.log, self.dry_release)
 				uploader.nightly_file(self.build_type, archive_filename, None, ex.uuid, revhash[:10], arch)
 
 		return True

@@ -27,45 +27,53 @@ class Uploader():
 			raise Exception('Unsupported architecture: %s' % arch)
 
 	def nightly_file(self, build_type, filename, stream, uuid, hgid, arch):
-		if stream is not None:
-			# If stream is nil the build failed
-			self.log.write('Uploading nightly file %s...\n' % os.path.basename(filename))
+		if self.dry_release:
+			if stream is not None:
+				target_path = '/home/ck/public_html/dry-release/%s' % os.path.basename(filename)
+				self.log.write('Dry run: Copying to %s\n' % target_path)
 
-			content = stream.read()
-			filehash = hmac.new(self.nightly_key, content, hashlib.sha256).hexdigest()
-
-			remote_dir = 'nightly/snapshots'
-			remote_filename = '%s/%s' % (remote_dir, os.path.basename(filename))
-
-			# Upload the file
-			ftp = ftplib.FTP('ftp.openclonk.org', 'ftp1144497-nightly', open('../passwd/nightly.txt', 'r').read().strip())
-			try:
-				ftp.mkd(remote_dir)
-			except ftplib.error_perm:
-				# If the directory exists already errorperm is raised
-				pass
-			ftp.storbinary('STOR %s' % remote_filename, StringIO.StringIO(content))
+				content = stream.read()
+				open(target_path, 'w').write(content)
 		else:
-			# In case of a build failure, make a message hash of the UUID
-			remote_filename = None
-			filehash = hmac.new(self.nightly_key, uuid, hashlib.sha256).hexdigest()
+			if stream is not None:
+				# If stream is nil the build failed
+				self.log.write('Uploading nightly file %s...\n' % os.path.basename(filename))
 
-		# Now call the nightly page
-		parameters = {
-			'type': build_type,
-			'hgid': hgid,
-			'uuid': uuid,
-			'digest': filehash,
-			'platform': arch,
-			'user': 'ck'
-		}
+				content = stream.read()
+				filehash = hmac.new(self.nightly_key, content, hashlib.sha256).hexdigest()
 
-		if remote_filename is not None:
-			parameters.update({'file': remote_filename})
+				remote_dir = 'nightly/snapshots'
+				remote_filename = '%s/%s' % (remote_dir, os.path.basename(filename))
 
-		response = urllib.urlopen('http://openclonk.org/nightly-builds/index.php', urllib.urlencode(parameters))
-		if response.getcode() != 200:
-			raise Exception('Upload failed: %s' % response.read())
+				# Upload the file
+				ftp = ftplib.FTP('ftp.openclonk.org', 'ftp1144497-nightly', open('../passwd/nightly.txt', 'r').read().strip())
+				try:
+					ftp.mkd(remote_dir)
+				except ftplib.error_perm:
+					# If the directory exists already errorperm is raised
+					pass
+				ftp.storbinary('STOR %s' % remote_filename, StringIO.StringIO(content))
+			else:
+				# In case of a build failure, make a message hash of the UUID
+				remote_filename = None
+				filehash = hmac.new(self.nightly_key, uuid, hashlib.sha256).hexdigest()
+
+			# Now call the nightly page
+			parameters = {
+				'type': build_type,
+				'hgid': hgid,
+				'uuid': uuid,
+				'digest': filehash,
+				'platform': arch,
+				'user': 'ck'
+			}
+
+			if remote_filename is not None:
+				parameters.update({'file': remote_filename})
+
+			response = urllib.urlopen('http://openclonk.org/nightly-builds/index.php', urllib.urlencode(parameters))
+			if response.getcode() != 200:
+				raise Exception('Upload failed: %s' % response.read())
 
 	def release_file(self, filename, (major, minor, micro)):
 		self.log.write('Uploading release file %s...\n' % os.path.basename(filename))

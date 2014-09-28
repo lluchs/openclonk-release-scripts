@@ -28,13 +28,13 @@ class RevisionPushed():
 			self.log.write('The master branch has new commits.\n')
 
 			# Make a new development snapshot
-			builder = snapshotbuilder.SnapshotBuilder(self.revision, self.log, 'openclonk')
+			builder = snapshotbuilder.SnapshotBuilder(self.revision, self.log, 'openclonk', False)
 			# TODO: Remove all other snapshot builders from the queue
 			self.queue.put(50, builder)
 
 			# Also make a new mape build. In principle we could do this only if something in the
 			# mape directory or any of the other files used by mape change, but let's keep it simple here.
-			builder = snapshotbuilder.SnapshotBuilder(self.revision, self.log, 'mape')
+			builder = snapshotbuilder.SnapshotBuilder(self.revision, self.log, 'mape', False)
 			# TODO: Remove all other snapshot builders from the queue
 			self.queue.put(70, builder)
 

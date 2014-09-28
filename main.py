@@ -48,10 +48,10 @@ class BuildServer():
 			self.log.write('Failed to release revision %s: %s\n' % (revision, ex))
 			raise
 
-	def make_snapshot(self, revision):
+	def make_snapshot(self, revision, dry_release):
 		try:
-			builder = snapshotbuilder.SnapshotBuilder(revision, self.log, 'openclonk')
-			#builder = snapshotbuilder.SnapshotBuilder(revision, self.log, 'mape')
+			builder = snapshotbuilder.SnapshotBuilder(revision, self.log, 'openclonk', dry_release)
+			#builder = snapshotbuilder.SnapshotBuilder(revision, self.log, 'mape', dry_release)
 			builder()
 		except Exception as ex:
 			self.log.write('Failed to create snapshot for revision %s: %s\n' % (revision, ex))
@@ -70,7 +70,7 @@ try:
 
 #	server.make_release('14ab9fe1345a') # 5.2.2
 #	server.make_release('4c71d5edfb06') # 5.2.0
-#	server.make_snapshot('master')
+#	server.make_snapshot('1b425696ac8a', True)
 #	server.make_docs('master')
 	server.run()
 
