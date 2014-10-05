@@ -105,13 +105,12 @@ class Uploader():
 
 			return remote_filename, filehash
 			
-	def release_binaries(self, filename, arch, (major, minor, micro), oldversions):
+	def release_binaries(self, filename, arch, (major, minor, micro)):
 		(remote_filename, filehash) = self.release_file(filename, (major, minor, micro))
 		if not self.dry_release:
 		
 			self.log.write('Registering update at openclonk.org %s...\n' % os.path.basename(filename))
 			parameters = {
-				'old_version': ','.join(map(lambda (x,y,z): '%d.%d.%d' % (x,y,z), oldversions)),
 				'new_version': '%d.%d.%d' % (major, minor, micro),
 				'file': remote_filename,
 				'platform': self.get_masterserver_archname(arch),
