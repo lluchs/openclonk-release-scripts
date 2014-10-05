@@ -71,7 +71,7 @@ class Uploader():
 			if remote_filename is not None:
 				parameters.update({'file': remote_filename})
 
-			response = urllib.urlopen('http://openclonk.org/nightly-builds/index.php', urllib.urlencode(parameters))
+			response = urllib.urlopen('http://openclonk.org/nightly-builds/', urllib.urlencode(parameters))
 			if response.getcode() != 200:
 				raise Exception('Upload failed: %s' % response.read())
 

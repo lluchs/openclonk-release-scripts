@@ -17,7 +17,7 @@ def download_and_extract(hrefs):
 	for bin_type in hrefs:
 		href = hrefs[bin_type]
 
-		obj = urllib.urlopen('http://hg.openclonk.org%s' % href)
+		obj = urllib.urlopen('http://git.openclonk.org%s' % href)
 		obj = StringIO.StringIO(obj.read()) # no longer needed with python 3.2, but then we need to find a way to guess the file type
 
 		# Guess file type
@@ -53,7 +53,7 @@ def firstElement(node):
 	return child
 
 def obtain_impl(revision, arch, binaries, have_queued):
-	url = 'http://hg.openclonk.org/openclonk/xml-autobuild/%s' % revision
+	url = 'http://git.openclonk.org/openclonk/xml-autobuild/%s' % revision
 
 	reply = urllib.urlopen(url).read()
 	tree = xml.dom.minidom.parseString(reply)
@@ -75,7 +75,7 @@ def obtain_impl(revision, arch, binaries, have_queued):
 #							self.log.write('Build for architecture %s is not available (rev %s)\n' % (arch, revision))
 #							self.log.write('Queuing a build...\n')
 #							server = SOAPpy.SOAPProxy('http://[2a01:238:43e1:7e01:216:3eff:fefa:d5]:32000/')
-							server = SOAPpy.SOAPProxy('http://hg.openclonk.org:32000/')
+							server = SOAPpy.SOAPProxy('http://git.openclonk.org:32000/')
 							result = server.queuebuild(revision, arch)
 #							self.log.write('   => %s\n' % result.strip())
 
