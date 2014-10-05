@@ -215,7 +215,7 @@ class ReleaseBuilder():
 					os.chmod(os.path.join(archdir, filename), 0755)
 				binaries.append(filename)
 
-			# Create distribution directory and copy both commond and
+			# Create distribution directory and copy both common and
 			# architecture dependent files there.
 			distdir = os.path.join(archdir, 'openclonk-%d.%d.%d' % (major, minor, micro))
 			os.mkdir(distdir)

@@ -109,10 +109,8 @@ class Uploader():
 		(remote_filename, filehash) = self.release_file(filename, (major, minor, micro))
 		if not self.dry_release:
 		
-			self.log.write('Registering with masterserver %s...\n' % os.path.basename(filename))
-			# Register the uploaded file with the masterserver
+			self.log.write('Registering update at openclonk.org %s...\n' % os.path.basename(filename))
 			parameters = {
-				'action': 'release-file',
 				'old_version': ','.join(map(lambda (x,y,z): '%d.%d.%d' % (x,y,z), oldversions)),
 				'new_version': '%d.%d.%d' % (major, minor, micro),
 				'file': remote_filename,
@@ -120,7 +118,7 @@ class Uploader():
 				'hash': filehash
 			}
 
-			response = urllib.urlopen('http://boom.openclonk.org/server/index.php', urllib.urlencode(parameters))
+			response = urllib.urlopen('http://www.openclonk.org/update/', urllib.urlencode(parameters))
 #			response = urllib.urlopen('http://localhost:3526', urllib.urlencode(parameters))
 			if response.getcode() != 200:
 				raise Exception('Upload failed: %s' % response.read())
