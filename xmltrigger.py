@@ -9,8 +9,9 @@ import git
 import releasebuilder
 
 class XMLTrigger(trigger.Trigger):
-	def __init__(self, queue, log):
+	def __init__(self, amqp_connection, queue, log):
 		trigger.Trigger.__init__(self, queue, log)
+		self.amqp_connection = amqp_connection
 		# Note we need the key path in its absolute form since the main thread
 		# can change the current working directory, for example for NSIS invocation
 		self.key_path = os.path.normpath(os.path.join(os.getcwd(), '../keys'))
@@ -49,7 +50,7 @@ class XMLTrigger(trigger.Trigger):
 	def oc_release_release(self, user, digest, revision, dry_release):
 		try:
 			self.consume_ticket(user, digest)
-			self.queue.put(30, releasebuilder.ReleaseBuilder(revision, self.log, dry_release))
+			self.queue.put(30, releasebuilder.ReleaseBuilder(amqp_connection, revision, self.log, dry_release))
 			return True
 		except Exception, ex:
 			return False, str(ex)

@@ -12,7 +12,8 @@ import contentiter
 import architer
 
 class SnapshotBuilder():
-	def __init__(self, revision, log, build_type, dry_release):
+	def __init__(self, amqp_connection, revision, log, build_type, dry_release):
+		self.amqp_connection = amqp_connection
 		self.revision = revision
 		self.log = log
 		self.build_type = build_type
@@ -42,7 +43,7 @@ class SnapshotBuilder():
 					for name, stream in contentiter.ContentIter(groupcontent.snapshot):
 						archive_obj.add(name, stream.read())
 
-				arch_iter = architer.ArchIter(arch, revhash, self.build_type)
+				arch_iter = architer.ArchIter(self.amqp_connection, arch, revhash, self.build_type)
 				for name, stream in arch_iter:
 					archive_obj.add(name, stream.read())
 

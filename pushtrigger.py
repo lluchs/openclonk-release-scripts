@@ -9,7 +9,8 @@ import releasebuilder
 import docbuilder
 
 class RevisionPushed():
-	def __init__(self, queue, log, revision):
+	def __init__(self, amqp_connection, queue, log, revision):
+		self.amqp_connection = amqp_connection
 		self.queue = queue
 		self.log = log
 		self.revision = revision
@@ -28,13 +29,13 @@ class RevisionPushed():
 			self.log.write('The master branch has new commits.\n')
 
 			# Make a new development snapshot
-			builder = snapshotbuilder.SnapshotBuilder(self.revision, self.log, 'openclonk', False)
+			builder = snapshotbuilder.SnapshotBuilder(self.amqp_connection, self.revision, self.log, 'openclonk', False)
 			# TODO: Remove all other snapshot builders from the queue
 			self.queue.put(50, builder)
 
 			# Also make a new mape build. In principle we could do this only if something in the
 			# mape directory or any of the other files used by mape change, but let's keep it simple here.
-			builder = snapshotbuilder.SnapshotBuilder(self.revision, self.log, 'mape', False)
+			builder = snapshotbuilder.SnapshotBuilder(self.amqp_connection, self.revision, self.log, 'mape', False)
 			# TODO: Remove all other snapshot builders from the queue
 			self.queue.put(70, builder)
 
@@ -53,9 +54,9 @@ class RevisionPushed():
 		return True
 
 class PushTrigger(trigger.Trigger):
-	def __init__(self, queue, log):
-		self.sslkey = os.path.normpath(os.path.join(os.getcwd(), '../keys/ockey.pem'))
-		self.sslcert = os.path.normpath(os.path.join(os.getcwd(), '../keys/CIA-londeroth.org.pem'))
+	def __init__(self, amqp_connection, queue, log):
+		self.amqp_connection = amqp_connection
+		self.amqp_channel = amqp_connection.channel()
 		trigger.Trigger.__init__(self, queue, log)
 
 	def oc_release_build(self, channel, method, properties, payload):
@@ -68,7 +69,7 @@ class PushTrigger(trigger.Trigger):
 			# High priority to handle this revision push, it
 			# will then queue the actual builders after
 			# examining the nature of the new commits.
-			self.queue.put(0, RevisionPushed(self.queue, self.log, ref_update['commit']))
+			self.queue.put(0, RevisionPushed(self.amqp_connection, self.queue, self.log, ref_update['commit']))
 			channel.basic_ack(method.delivery_tag)
 			return True
 		except Exception, ex:
@@ -82,7 +83,7 @@ class PushTrigger(trigger.Trigger):
 			# updates
 			if not ref_update['ref'].startswith('refs/tags/v'):
 				raise ValueError('Not a release version tag')
-			self.queue.put(30, releasebuilder.ReleaseBuilder(ref_update['commit'], self.log))
+			#self.queue.put(30, releasebuilder.ReleaseBuilder(self.amqp_connection, ref_update['commit'], self.log))
 			return True
 		except Exception, ex:
 			return False, str(ex)
@@ -99,16 +100,6 @@ class PushTrigger(trigger.Trigger):
 		return queue
 
 	def __call__(self):
-		amqp_params = pika.ConnectionParameters(
-			host='amqp.nosebud.de',
-			port=5671,
-			virtual_host='openclonk',
-			ssl=True,
-			ssl_options={'keyfile': self.sslkey, 'certfile': self.sslcert},
-			credentials=pika.credentials.ExternalCredentials(),
-			)
-		amqp_connection = pika.BlockingConnection(amqp_params)
-		amqp_channel = amqp_connection.channel()
-		self.bind_to_exchange(amqp_channel, 'occ.ref', 'openclonk.heads.master', self.oc_release_build)
-		self.bind_to_exchange(amqp_channel, 'occ.ref', 'openclonk.tags.*', self.oc_release_release)
-		amqp_channel.start_consuming()
+		self.bind_to_exchange(self.amqp_channel, 'occ.ref', 'openclonk.heads.master', self.oc_release_build)
+		self.bind_to_exchange(self.amqp_channel, 'occ.ref', 'openclonk.tags.*', self.oc_release_release)
+		self.amqp_channel.start_consuming()

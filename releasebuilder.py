@@ -13,7 +13,8 @@ import nsis
 import upload
 
 class ReleaseBuilder():
-	def __init__(self, revision, log, dry_release):
+	def __init__(self, amqp_connection, revision, log, dry_release):
+		self.amqp_connection = amqp_connection
 		self.archive_dir = '../release-archive'
 		self.revision = revision
 		self.log = log
@@ -127,7 +128,7 @@ class ReleaseBuilder():
 
 			# Copy both binaries and dependencies into archive. 
 			binaries = []
-			for filename, stream in architer.ArchIter(arch, revision, 'openclonk'):
+			for filename, stream in architer.ArchIter(self.amqp_connection, arch, revision, 'openclonk'):
 				open(os.path.join(archdir, filename), 'w').write(stream.read())
 				if architer.ArchIter.is_executable(filename):
 					os.chmod(os.path.join(archdir, filename), 0755)

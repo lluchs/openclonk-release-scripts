@@ -14,7 +14,8 @@ class ArchIter():
 	def is_executable(filename):
 		return filename.startswith('openclonk') or filename.startswith('clonk') or filename.startswith('c4group') or filename.startswith('mape')
 
-	def __init__(self, arch, revision, build_type):
+	def __init__(self, amqp_connection, arch, revision, build_type):
+		self.amqp_connection = amqp_connection
 		self.arch = arch
 		self.revision = revision
 		self.index = 0
@@ -72,7 +73,7 @@ class ArchIter():
 		elif item['type'] == 'autobuild':
 			# TODO: Make only one request for all autobuild types.
 			# We could then also store UUID right from the beginning.
-			result, self.uuid = autobuild.obtain(self.revision, self.arch, [item['executable']])
+			result, self.uuid = autobuild.obtain(self.amqp_connection, self.revision, self.arch, [item['executable']])
 			filename, stream = result[0]
 		else:
 			raise Exception('Invalid ArchIter item type "%s"' % item['type'])

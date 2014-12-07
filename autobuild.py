@@ -5,6 +5,7 @@ import SOAPpy
 import xml.dom.minidom
 import StringIO
 import gzip
+import json
 from backports import lzma
 
 class AutobuildException(Exception):
@@ -52,7 +53,7 @@ def firstElement(node):
 		child = child.nextSibling
 	return child
 
-def obtain_impl(revision, arch, binaries, have_queued):
+def obtain_impl(amqp_connection, revision, arch, binaries, have_queued):
 	url = 'http://git.openclonk.org/openclonk/xml-autobuild/%s' % revision
 
 	reply = urllib.urlopen(url).read()
@@ -74,18 +75,17 @@ def obtain_impl(revision, arch, binaries, have_queued):
 						if not have_queued:
 #							self.log.write('Build for architecture %s is not available (rev %s)\n' % (arch, revision))
 #							self.log.write('Queuing a build...\n')
-#							server = SOAPpy.SOAPProxy('http://[2a01:238:43e1:7e01:216:3eff:fefa:d5]:32000/')
-							server = SOAPpy.SOAPProxy('http://git.openclonk.org:32000/')
-							result = server.queuebuild(revision, arch)
-#							self.log.write('   => %s\n' % result.strip())
+							message = json.dumps({'type': 'enqueue', 'project': 'openclonk', 'commit': revision})
+							amqp_channel = amqp_connection.channel()
+							amqp_channel.basic_publish(exchange='', routing_key='ocbuild.control', body=message)
 
 #						self.log.write('Waiting for the build to finish...\n')
 						time.sleep(60)
-						return obtain_impl(revision, arch, binaries, True)
+						return obtain_impl(amqp_connection, revision, arch, binaries, True)
 					elif subchild.getAttribute('result') == 'inprogress' or subchild.getAttribute('result') == 'enqueued':
 #						self.log.write('Waiting for the build to finish...\n')
 						time.sleep(60)
-						return obtain_impl(revision, arch, binaries, True)
+						return obtain_impl(amqp_connection, revision, arch, binaries, True)
 					elif subchild.getAttribute('result') == 'failure':
 						raise AutobuildException('The build resulted in failure for architecture %s' % arch, subchild.getAttribute('uuid'))
 					elif subchild.getAttribute('result') == 'success':
@@ -119,5 +119,5 @@ def obtain_impl(revision, arch, binaries, have_queued):
 	else:
 		raise Exception('Invalid XML: Changeset has no builds')
 
-def obtain(revision, arch, binaries):
-	return obtain_impl(revision, arch, binaries, False)
+def obtain(amqp_connection, revision, arch, binaries):
+	return obtain_impl(amqp_connection, revision, arch, binaries, False)
