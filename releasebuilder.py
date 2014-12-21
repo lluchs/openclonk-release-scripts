@@ -88,7 +88,7 @@ class ReleaseBuilder():
 		# TODO: The following could be checked easier maybe...
 		prefix = ''
 		for x in 'ghijklmnopqrstuvwxyz':
-			if len(prefix) == 0:
+			if len(prefix) == 0 and x in self.revision:
 				prefix = 'origin/'
 
 		git.fetch()
