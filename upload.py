@@ -75,7 +75,7 @@ class Uploader():
 			if response.getcode() != 200:
 				raise Exception('Upload failed: %s' % response.read())
 
-	def release_file(self, filename, (major, minor, micro)):
+	def release_file(self, filename, (major, minor)):
 		self.log.write('Uploading release file %s...\n' % os.path.basename(filename))
 
 		if self.dry_release:
@@ -89,7 +89,7 @@ class Uploader():
 		else:
 			filehash = hmac.new(self.release_key, open(filename, 'r').read(), hashlib.sha256).hexdigest() # TODO: strip?
 
-			remote_dir = 'release/%d.%d.%d' % (major, minor, micro)
+			remote_dir = 'release/%d.%d' % (major, minor)
 			remote_filename = '%s/%s' % (remote_dir, os.path.basename(filename))
 
 			# Upload the file
@@ -105,13 +105,13 @@ class Uploader():
 
 			return remote_filename, filehash
 			
-	def release_binaries(self, filename, arch, (major, minor, micro)):
-		(remote_filename, filehash) = self.release_file(filename, (major, minor, micro))
+	def release_binaries(self, filename, arch, (major, minor)):
+		(remote_filename, filehash) = self.release_file(filename, (major, minor))
 		if not self.dry_release:
 		
 			self.log.write('Registering update at openclonk.org %s...\n' % os.path.basename(filename))
 			parameters = {
-				'new_version': '%d.%d.%d' % (major, minor, micro),
+				'new_version': '%d.%d' % (major, minor),
 				'file': remote_filename,
 				'platform': self.get_masterserver_archname(arch),
 				'hash': filehash

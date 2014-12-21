@@ -25,16 +25,16 @@ class ReleaseBuilder():
 		self.name = 'Release for revision %s' % revision
 
 	def parse_version_file(self, filename):
-		v = [-1,-1,-1]
+		v = [-1,-1]
 		for line in open(filename, 'r'):
-			match = re.match('SET\\(C4XVER([1-3])\\s+([0-9]+)\\)', line)
+			match = re.match('SET\\(C4XVER([1-2])\\s+([0-9]+)\\)', line)
 			if match is not None:
 				v[int(match.group(1))-1] = int(match.group(2))
 
 		if -1 in v:
 			raise Exception('Failed to parse version number')
 
-		return v[0], v[1], v[2]
+		return v[0], v[1]
 
 	# The given directory contains all distribution files. This packs it into
 	# whatever is appropriate for arch: Windows installer or a tarball
@@ -95,13 +95,13 @@ class ReleaseBuilder():
 		git.reset('%s%s' % (prefix, self.revision))
 		revision = git.id()[:12]
 
-		(major, minor, micro) = self.parse_version_file('Version.txt')
+		(major, minor) = self.parse_version_file('Version.txt')
 
-		self.log.write('==> Version %d.%d.%d\n' % (major, minor, micro))
+		self.log.write('==> Version %d.%d\n' % (major, minor))
 
 		dry_suffix = ''
 		if self.dry_release: dry_suffix = '-dry'
-		archive = os.path.join(self.archive_dir, '%d.%d.%d%s' % (major, minor, micro, dry_suffix))
+		archive = os.path.join(self.archive_dir, '%d.%d%s' % (major, minor, dry_suffix))
 
 		if os.path.exists(archive):
 			self.log.write('Archive directory %s exists already. Clearing...\n' % archive)
@@ -142,7 +142,7 @@ class ReleaseBuilder():
 
 			# Create distribution directory and copy both common and
 			# architecture dependent files there.
-			distdir = os.path.join(archdir, 'openclonk-%d.%d.%d' % (major, minor, micro))
+			distdir = os.path.join(archdir, 'openclonk-%d.%d' % (major, minor))
 			os.mkdir(distdir)
 			for filename in content + others:
 				shutil.copy(os.path.join(archive, filename), os.path.join(distdir, filename))
@@ -158,10 +158,10 @@ class ReleaseBuilder():
 		uploader = upload.Uploader(self.log, self.dry_release)
 		
 		# TODO uncomment when source tarball created
-		#uploader.release_file(source_package_filename, (major, minor, micro))
+		#uploader.release_file(source_package_filename, (major, minor))
 		
-		for arch,file in all_files:
-			uploader.release_binaries(file, arch, (major, minor, micro))
+		for arch,file in all_files.items():
+			uploader.release_binaries(file, arch, (major, minor))
 			os.unlink(file)
 
 		# Remove the archive if this was a dry release
