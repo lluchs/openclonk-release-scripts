@@ -50,7 +50,7 @@ class XMLTrigger(trigger.Trigger):
 	def oc_release_release(self, user, digest, revision, dry_release):
 		try:
 			self.consume_ticket(user, digest)
-			self.queue.put(30, releasebuilder.ReleaseBuilder(amqp_connection, revision, self.log, dry_release))
+			self.queue.put(30, releasebuilder.ReleaseBuilder(self.amqp_connection, revision, self.log, dry_release))
 			return True
 		except Exception, ex:
 			return False, str(ex)
