@@ -83,10 +83,16 @@ class ReleaseBuilder():
 			self.log.write('Releasing revision %s...\n' % self.revision)
 
 		# Update to revision and get hexadecimal ID.
-		# TODO: If a branch name is given, checkout the branch from remote
 		# TODO: Reset back to 'origin/master' afterwards
+
+		# TODO: The following could be checked easier maybe...
+		prefix = ''
+		for x in 'ghijklmnopqrstuvwxyz':
+			if len(prefix) == 0:
+				prefix = 'origin/'
+
 		git.fetch()
-		git.reset(self.revision)
+		git.reset('%s%s' % (prefix, self.revision))
 		revision = git.id()[:12]
 
 		(major, minor, micro) = self.parse_version_file('Version.txt')
