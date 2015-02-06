@@ -24,7 +24,7 @@ def download_and_extract(hrefs):
 		# Guess file type
 		magic_dict = {
 			"\x1f\x8b\x08": lambda x: gzip.GzipFile(fileobj=x, mode='rb'),
-			"\xfd\x37\x7a\x58\x5a\x00": lambda x: lzma.LZMAFile(x, mode='cb')
+			"\xfd\x37\x7a\x58\x5a\x00": lambda x: lzma.LZMAFile(x, mode='rb')
 		}
 
 		max_magic = max(len(x) for x in magic_dict)
