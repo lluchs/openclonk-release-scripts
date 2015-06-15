@@ -66,6 +66,12 @@ class ReleaseBuilder():
 
 			shutil.rmtree(directory)
 			return os.path.join(os.path.dirname(directory), basename)
+		elif arch.startswith('darwin'):
+			basename += '.zip'
+			outname = os.path.join(os.path.dirname(directory), basename)
+			zipfile = [x for x in os.listdir(directory) if x.endswith('.zip')][0]
+			shutil.copy(os.path.join(directory, zipfile), outname)
+			return outname
 		else:
 			basename += '.tar.bz2'
 			tarname = os.path.join(os.path.dirname(directory), basename)
@@ -132,20 +138,27 @@ class ReleaseBuilder():
 			archdir = os.path.join(archive, arch)
 			os.mkdir(archdir)
 
-			# Copy both binaries and dependencies into archive. 
-			binaries = []
-			for filename, stream in architer.ArchIter(self.amqp_connection, arch, revision, 'openclonk'):
+			if arch.startswith('darwin'):
+				result, uuid = autobuild.obtain(self.amqp_connection, revision, arch, ['openclonk'])
+				filenamename, stream = result[0]
 				open(os.path.join(archdir, filename), 'w').write(stream.read())
-				if architer.ArchIter.is_executable(filename):
-					os.chmod(os.path.join(archdir, filename), 0755)
 				binaries.append(filename)
+			else:
+				# Copy both binaries and dependencies into archive. 
+				binaries = []
+				for filename, stream in architer.ArchIter(self.amqp_connection, arch, revision, 'openclonk'):
+					open(os.path.join(archdir, filename), 'w').write(stream.read())
+					if architer.ArchIter.is_executable(filename):
+						os.chmod(os.path.join(archdir, filename), 0755)
+					binaries.append(filename)
 
 			# Create distribution directory and copy both common and
 			# architecture dependent files there.
 			distdir = os.path.join(archdir, 'openclonk-%d.%d' % (major, minor))
 			os.mkdir(distdir)
-			for filename in content + others:
-				shutil.copy(os.path.join(archive, filename), os.path.join(distdir, filename))
+			if not arch.startswith('darwin'):
+				for filename in content + others:
+					shutil.copy(os.path.join(archive, filename), os.path.join(distdir, filename))
 			for filename in binaries:
 				shutil.copy(os.path.join(archdir, filename), os.path.join(distdir, filename))
 

@@ -12,11 +12,15 @@ class Archive():
 
 		if 'win32' in self.arch:
 			self.archive = zipfile.ZipFile(fileobj, 'w', zipfile.ZIP_DEFLATED)
+		elif 'darwin' in self.arch:
+			self.archive = fileobj # it is already a zip file
 		else:
 			self.archive = tarfile.open(fileobj = fileobj, mode = 'w:bz2')
 
 	def get_filename(self, basename):
 		if 'win32' in self.arch:
+			return basename + '.zip'
+		elif 'darwin' in self.arch:
 			return basename + '.zip'
 		else:
 			return basename + '.tar.bz2'
@@ -24,6 +28,12 @@ class Archive():
 	def add(self, filename, content):
 		if 'win32' in self.arch:
 			self.archive.writestr(filename, content)
+		elif 'darwin' in self.arch:
+			if not hasattr(self, 'archive_written'):
+				self.archive.write(content)
+				self.archive_written = True
+			else:
+				raise Exception('Only one file allowed for Darwin')
 		else:
 			info = tarfile.TarInfo(filename)
 			if architer.ArchIter.is_executable(filename):
@@ -35,4 +45,5 @@ class Archive():
 			self.archive.addfile(info, StringIO.StringIO(content))
 
 	def close(self):
-		self.archive.close()
+		if 'darwin' not in self.arch :
+			self.archive.close()

@@ -34,24 +34,27 @@ class SnapshotBuilder():
 			filename = '%s-snapshot-%s-%s-%s' % (self.build_type, date, revhash[:10], arch)
 
 			try:
-				#macbuilder = macbuilder.MacBuilder(revhash) # autobuilder in other cases
-
 				archive_stream = StringIO.StringIO()
 				archive_obj = archive.Archive(arch, archive_stream)
 
-				if self.build_type == 'openclonk':
-					for name, stream in contentiter.ContentIter(groupcontent.snapshot):
-						archive_obj.add(name, stream.read())
-
-				arch_iter = architer.ArchIter(self.amqp_connection, arch, revhash, self.build_type)
-				for name, stream in arch_iter:
+				if arch.startswith('darwin'):
+					result, uuid = autobuild.obtain(self.amqp_connection, revhash, arch, ['openclonk'])
+					name, stream = result[0]
 					archive_obj.add(name, stream.read())
+				else:
+					if self.build_type == 'openclonk':
+						for name, stream in contentiter.ContentIter(groupcontent.snapshot):
+							archive_obj.add(name, stream.read())
+
+					arch_iter = architer.ArchIter(self.amqp_connection, arch, revhash, self.build_type)
+					for name, stream in arch_iter:
+						archive_obj.add(name, stream.read())
+					uuid = arch_iter.uuid
 
 				archive_filename = archive_obj.get_filename(filename)
 				archive_obj.close()
 				archive_stream.seek(0)
 
-				uuid = arch_iter.uuid
 				uploader = upload.Uploader(self.log, self.dry_release)
 				uploader.nightly_file(self.build_type, archive_filename, archive_stream, uuid, revhash[:10], arch)
 			except autobuild.AutobuildException as ex:

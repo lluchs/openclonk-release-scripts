@@ -85,7 +85,7 @@ try:
 
 #	server.make_release('14ab9fe1345a') # 5.2.2
 #	server.make_release('4c71d5edfb06') # 5.2.0
-#	server.make_snapshot('origin/lights', True)
+#	server.make_snapshot('origin/master', True)
 #	server.make_docs('master')
 	server.run()
 
