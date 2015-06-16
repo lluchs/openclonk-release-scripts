@@ -57,7 +57,7 @@ class BuildServer():
 
 	def make_release(self, revision):
 		try:
-			builder = releasebuilder.ReleaseBuilder(self.amqp_connection, revision, self.log)
+			builder = releasebuilder.ReleaseBuilder(self.amqp_connection, revision, self.log, True)
 			builder()
 		except Exception as ex:
 			self.log.write('Failed to release revision %s: %s\n' % (revision, ex))
@@ -84,7 +84,7 @@ try:
 	server = BuildServer()
 
 #	server.make_release('14ab9fe1345a') # 5.2.2
-#	server.make_release('4c71d5edfb06') # 5.2.0
+#	server.make_release('v6.1')
 #	server.make_snapshot('origin/master', True)
 #	server.make_docs('master')
 	server.run()

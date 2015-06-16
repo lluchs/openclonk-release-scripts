@@ -42,8 +42,11 @@ def download_and_extract(hrefs):
 			raise Exception('File type not recognized')
 	
 		# Rename to clonk$EXEEXT or c4group$EXEEXT
-		filename, ext = os.path.splitext(href[:-3])
-		filename = bin_type + ext
+		basename = href.split('/')[-1]
+		if basename.endswith('.gz'):
+			basename = href[:-3]
+		filename, ext = basename.split(os.extsep, 1)
+		filename = bin_type + "." + ext
 
 		files.append((filename, zipped))
 	return files

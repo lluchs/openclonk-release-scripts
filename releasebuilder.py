@@ -4,6 +4,7 @@ import shutil
 import tarfile
 
 import git
+import autobuild
 import arches
 import groupcontent
 import c4group
@@ -67,7 +68,7 @@ class ReleaseBuilder():
 			shutil.rmtree(directory)
 			return os.path.join(os.path.dirname(directory), basename)
 		elif arch.startswith('darwin'):
-			basename += '.zip'
+			basename += '.app.zip'
 			outname = os.path.join(os.path.dirname(directory), basename)
 			zipfile = [x for x in os.listdir(directory) if x.endswith('.zip')][0]
 			shutil.copy(os.path.join(directory, zipfile), outname)
@@ -93,9 +94,10 @@ class ReleaseBuilder():
 
 		# TODO: The following could be checked easier maybe...
 		prefix = ''
-		for x in 'ghijklmnopqrstuvwxyz':
-			if len(prefix) == 0 and x in self.revision:
-				prefix = 'origin/'
+		if not self.revision.startswith('v'):
+			for x in 'ghijklmnopqrstuvwxyz':
+				if len(prefix) == 0 and x in self.revision:
+					prefix = 'origin/'
 
 		git.fetch()
 		git.reset('%s%s' % (prefix, self.revision))
@@ -138,14 +140,14 @@ class ReleaseBuilder():
 			archdir = os.path.join(archive, arch)
 			os.mkdir(archdir)
 
+			binaries = []
 			if arch.startswith('darwin'):
 				result, uuid = autobuild.obtain(self.amqp_connection, revision, arch, ['openclonk'])
-				filenamename, stream = result[0]
+				filename, stream = result[0]
 				open(os.path.join(archdir, filename), 'w').write(stream.read())
 				binaries.append(filename)
 			else:
 				# Copy both binaries and dependencies into archive. 
-				binaries = []
 				for filename, stream in architer.ArchIter(self.amqp_connection, arch, revision, 'openclonk'):
 					open(os.path.join(archdir, filename), 'w').write(stream.read())
 					if architer.ArchIter.is_executable(filename):

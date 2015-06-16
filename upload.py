@@ -23,6 +23,8 @@ class Uploader():
 			return 'linux-x86'
 		elif arch.startswith('linux-amd64-'):
 			return 'linux-x86_64'
+		elif arch.startswith('darwin-amd64-'):
+			return 'darwin64-gcc'
 		else:
 			raise Exception('Unsupported architecture: %s' % arch)
 
