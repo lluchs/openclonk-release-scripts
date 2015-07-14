@@ -45,8 +45,12 @@ def download_and_extract(hrefs):
 		basename = href.split('/')[-1]
 		if basename.endswith('.gz'):
 			basename = href[:-3]
-		filename, ext = basename.split(os.extsep, 1)
-		filename = bin_type + "." + ext
+
+		if os.extsep in basename:
+			filename, ext = basename.split(os.extsep, 1)
+			filename = bin_type + "." + ext
+		else:
+			filename = bin_type
 
 		files.append((filename, zipped))
 	return files
