@@ -32,7 +32,7 @@ try:
 		user = urllib.unquote(param_map['user'])
 		passphrase = urllib.unquote(param_map['passphrase'])
 		revision = urllib.unquote(param_map['revision'])
-		dry_release = 'dry_release' in param_map
+		dry_release = 'dry_release' in param_map and param_map['dry_release'].lower() == 'release'
 
 		if passphrase.strip() == '': raise Exception('Empty passphrase')
 		if revision.strip() == '': raise Exception('Empty revision')
@@ -99,10 +99,6 @@ print """
      border: 1px solid grey;
    }
 
-   #Inputs #DryRelease {
-     width: 20px;
-   }
-   
    #SubmitButton {
      position: relative;
      top: 65px;
@@ -172,8 +168,9 @@ print """
         <label for="Passphrase">Passphrase</label>
         <input id="Passphrase" name="passphrase" type="text" required="required"/>
         <label for="Revision">Changeset ID or branch name</label>
-        <input id="Revision" name="revision" type="text" required="required"/><br />
-        <input id="DryRelease" name="dry_release" type="checkbox" checked="checked" />Dry Release
+        <input id="Revision" name="revision" type="text" required="required"/>
+        <label for="DryRelease">Type "release" for a non-dry release:</label>
+        <input id="DryRelease" name="dry_release" type="text" />
       </div>
       <input id="SubmitButton" name="submit_release" type="submit" value="Release"/>
      </form>
