@@ -32,7 +32,7 @@ try:
 		user = urllib.unquote(param_map['user'])
 		passphrase = urllib.unquote(param_map['passphrase'])
 		revision = urllib.unquote(param_map['revision'])
-		dry_release = 'dry_release' in param_map and param_map['dry_release'].lower() == 'release'
+		real_release = 'dry_release' in param_map and param_map['dry_release'].lower() == 'release'
 
 		if passphrase.strip() == '': raise Exception('Empty passphrase')
 		if revision.strip() == '': raise Exception('Empty revision')
@@ -42,11 +42,14 @@ try:
 		if type(ticket) != str: raise Exception('No such user')
 
 		digest = hmac.new(passphrase.strip(), ticket, hashlib.sha256).hexdigest()
-		result = proxy.oc_release_release(user, digest, revision, dry_release)
+		result = proxy.oc_release_release(user, digest, revision, not real_release)
 		if result != True: raise Exception('Not authorized')
 
 		message_type = 'MessageSuccess'
-		message_text = 'Release scheduled.'
+		if real_release:
+			message_text = 'Release scheduled.'
+		else:
+			message_text = 'Dry Release scheduled.'
 
 except Exception, ex:
 	message_type = 'MessageError'
