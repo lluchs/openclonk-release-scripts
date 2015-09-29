@@ -70,7 +70,7 @@ class ArchIter():
 				filename = os.path.basename(item['path'])
 			stream = open(item['path'], 'r')
 		elif item['type'] == 'zipentry':
-			if item['directory'] != '.':
+			if item['directory'] != '' and item['directory'] != '.':
 				filename = item['directory'] + '/' + os.path.basename(item['path'])
 			else:
 				filename = os.path.basename(item['path'])
