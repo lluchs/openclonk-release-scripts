@@ -29,6 +29,7 @@ class SnapshotBuilder():
 		revhash = git.id()
 
 		# TODO: Use same content streams for all architectures
+		upload_jobs = []
 		for arch in arches.arches:
 			date = time.strftime('%Y%m%d')
 			filename = '%s-snapshot-%s-%s-%s' % (self.build_type, date, revhash[:10], arch)
@@ -38,7 +39,7 @@ class SnapshotBuilder():
 				archive_obj = archive.Archive(arch, archive_stream)
 
 				if arch.startswith('darwin'):
-					result, uuid = autobuild.obtain(self.amqp_connection, revhash, arch, ['openclonk'])
+					result, uuid = autobuild.obtain(self.amqp_connection, revhash, arch, [self.build_type])
 					name, stream = result[0]
 					archive_obj.add(name, stream.read())
 				else:
@@ -55,12 +56,15 @@ class SnapshotBuilder():
 				archive_obj.close()
 				archive_stream.seek(0)
 
-				uploader = upload.Uploader(self.log, self.dry_release)
-				uploader.nightly_file(self.build_type, archive_filename, archive_stream, uuid, revhash[:10], arch)
+				upload_jobs.append((archive_filename, archive_stream, uuid, arch))
 			except autobuild.AutobuildException as ex:
 				# make an entry for "failed build"
 				archive_filename = archive_obj.get_filename(filename)
-				uploader = upload.Uploader(self.log, self.dry_release)
-				uploader.nightly_file(self.build_type, archive_filename, None, ex.uuid, revhash[:10], arch)
+				upload_jobs.append((archive_filename, None, ex.uuid, arch))
+
+		uploader = upload.Uploader(self.log, self.dry_release)
+		for archive_filename, archive_stream, uuid, arch in upload_jobs:
+			if archive_stream is not None: # Needed to skip mape osx build(?)
+				uploader.nightly_file(self.build_type, archive_filename, archive_stream, uuid, revhash[:10], arch)
 
 		return True

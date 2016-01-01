@@ -114,7 +114,7 @@ def obtain_impl(amqp_connection, revision, arch, binaries, have_queued):
 										if bin_type in map(lambda x: 'make: ' + x, tmp_binaries):
 											hrefs[bin_type[6:]] = binary.getAttribute('href')
 								if len(hrefs) != len(binaries):
-									raise Exception('Autobuilder did not build all requested binaries')
+									raise AutobuildException('Autobuilder did not build all requested binaries', subchild.getAttribute('uuid'))
 
 								return download_and_extract(hrefs), subchild.getAttribute('uuid')
 						else:
