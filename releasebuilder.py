@@ -62,7 +62,7 @@ class ReleaseBuilder():
 			os.chdir(directory)
 
 			engine_executable_name = 'openclonk.exe'
-			nsis.run(pwd, '../' + basename, '-amd64-' in arch, items['C4ENGINENAME'] + items['C4VERSIONBUILDNAME'], items['C4PROJECT'], engine_executable_name, 'c4group.exe')
+			nsis.run(pwd, '../' + basename, '-amd64-' in arch, items['C4ENGINENAME'], items['C4PROJECT'], engine_executable_name, 'c4group.exe')
 			os.chdir(pwd)
 
 			shutil.rmtree(directory)
