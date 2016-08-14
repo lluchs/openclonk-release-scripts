@@ -14,15 +14,17 @@ import architer
 import nsis
 import upload
 
-def _create_and_open(path):
-    """Create directories to the given path if they don't exist,
-    then open the file for writing."""
+def _ensure_dir_exists(path):
     try:
-        os.makedirs(os.path.dirname(path))
+        os.makedirs(path)
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise
 
+def _create_and_open(path):
+    """Create directories to the given path if they don't exist,
+    then open the file for writing."""
+    _ensure_dir_exists(os.path.dirname(path))
     return open(path, 'w')
 
 class ReleaseBuilder():
@@ -172,8 +174,10 @@ class ReleaseBuilder():
 			os.mkdir(distdir)
 			if not arch.startswith('darwin'):
 				for filename in content + others:
+					_ensure_dir_exists(os.path.dirname(os.path.join(distdir, filename)))
 					shutil.copy(os.path.join(archive, filename), os.path.join(distdir, filename))
 			for filename in binaries:
+				_ensure_dir_exists(os.path.dirname(os.path.join(distdir, filename)))
 				shutil.copy(os.path.join(archdir, filename), os.path.join(distdir, filename))
 
 			# Create full installation package
