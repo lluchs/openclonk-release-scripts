@@ -1,3 +1,4 @@
+import errno
 import os
 import re
 import shutil
@@ -12,6 +13,17 @@ import contentiter
 import architer
 import nsis
 import upload
+
+def _create_and_open(path):
+    """Create directories to the given path if they don't exist,
+    then open the file for writing."""
+    try:
+        os.makedirs(os.path.dirname(path))
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
+
+    return open(path, 'w')
 
 class ReleaseBuilder():
 	def __init__(self, amqp_connection, revision, log, dry_release):
@@ -129,7 +141,7 @@ class ReleaseBuilder():
 				others.append(filename)
 
 			destination = os.path.join(archive, filename)
-			open(destination, 'w').write(stream.read()) # TODO: copyfileobj?
+			_create_and_open(destination).write(stream.read()) # TODO: copyfileobj?
 
 		# Create architecture specific files:
 		all_files = {}
@@ -144,12 +156,12 @@ class ReleaseBuilder():
 			if arch.startswith('darwin'):
 				result, uuid = autobuild.obtain(self.amqp_connection, revision, arch, ['openclonk'])
 				filename, stream = result[0]
-				open(os.path.join(archdir, filename), 'w').write(stream.read())
+				_create_and_open(os.path.join(archdir, filename)).write(stream.read())
 				binaries.append(filename)
 			else:
 				# Copy both binaries and dependencies into archive. 
 				for filename, stream in architer.ArchIter(self.amqp_connection, arch, revision, 'openclonk'):
-					open(os.path.join(archdir, filename), 'w').write(stream.read())
+					_create_and_open(os.path.join(archdir, filename)).write(stream.read())
 					if architer.ArchIter.is_executable(filename):
 						os.chmod(os.path.join(archdir, filename), 0755)
 					binaries.append(filename)
