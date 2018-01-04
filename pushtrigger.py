@@ -100,6 +100,10 @@ class PushTrigger(trigger.Trigger):
 		return queue
 
 	def __call__(self):
-		self.bind_to_exchange(self.amqp_channel, 'occ.ref', 'openclonk.heads.master', self.oc_release_build)
-		self.bind_to_exchange(self.amqp_channel, 'occ.ref', 'openclonk.tags.*', self.oc_release_release)
-		self.amqp_channel.start_consuming()
+		try:
+			self.bind_to_exchange(self.amqp_channel, 'occ.ref', 'openclonk.heads.master', self.oc_release_build)
+			self.bind_to_exchange(self.amqp_channel, 'occ.ref', 'openclonk.tags.*', self.oc_release_release)
+			self.amqp_channel.start_consuming()
+		except Exception as ex:
+			# TODO: raise from
+			self.queue.put(100, trigger.FatalError(str(ex)))

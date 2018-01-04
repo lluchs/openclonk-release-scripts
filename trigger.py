@@ -1,5 +1,8 @@
 import threading
 
+class FatalError(RuntimeError):
+	pass
+
 class Trigger():
 	def __init__(self, queue, log):
 		self.queue = queue

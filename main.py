@@ -8,6 +8,7 @@ import releasebuilder
 import snapshotbuilder
 import docbuilder
 import notifyqueue
+import trigger
 import pushtrigger
 import xmltrigger
 
@@ -45,6 +46,9 @@ class BuildServer():
 		# Run main event loop
 		while True:
 			job = self.queue.get()
+			if isinstance(job, trigger.FatalError):
+				raise job
+
 			self.log.write('Running job "%s".\n' % job.name)
 
 			try:
@@ -85,7 +89,7 @@ try:
 
 #	server.make_release('14ab9fe1345a') # 5.2.2
 #	server.make_release('v6.1')
-#	server.make_snapshot('origin/master', True)
+#	server.make_snapshot('origin/master', False)
 #	server.make_docs('master')
 	server.run()
 

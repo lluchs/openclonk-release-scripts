@@ -56,7 +56,11 @@ class XMLTrigger(trigger.Trigger):
 			return False, str(ex)
 
 	def __call__(self):
-		server = SimpleXMLRPCServer.SimpleXMLRPCServer(('', 8000))
-		server.register_function(self.oc_release_build_ticket, 'oc_release_build_ticket')
-		server.register_function(self.oc_release_release, 'oc_release_release')
-		server.serve_forever()
+		try:
+			server = SimpleXMLRPCServer.SimpleXMLRPCServer(('', 8000))
+			server.register_function(self.oc_release_build_ticket, 'oc_release_build_ticket')
+			server.register_function(self.oc_release_release, 'oc_release_release')
+			server.serve_forever()
+		except Exception as ex:
+			# TODO: raise from
+			self.queue.put(100, trigger.FatalError(str(ex)))
