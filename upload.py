@@ -2,13 +2,13 @@ import os
 import hmac
 import hashlib
 import urllib
-import ftplib
-import StringIO
+import paramiko
 
 class Uploader():
 	def __init__(self, log, dry_release):
 		self.log = log
 
+                self.ssh_key = paramiko.Ed25519Key.from_private_key_file('../keys/id_ed25519')
 		self.release_key = open('../keys/key-boom.txt').read().strip()
 		self.nightly_key = open('../keys/key-ck.txt').read().strip()
 
@@ -47,14 +47,15 @@ class Uploader():
 				remote_dir = 'nightly/snapshots'
 				remote_filename = '%s/%s' % (remote_dir, os.path.basename(filename))
 
-				# Upload the file
-				ftp = ftplib.FTP('ftp.openclonk.org', 'ftp1144497-nightly', open('../passwd/nightly.txt', 'r').read().strip())
-				try:
-					ftp.mkd(remote_dir)
-				except ftplib.error_perm:
-					# If the directory exists already errorperm is raised
-					pass
-				ftp.storbinary('STOR %s' % remote_filename, StringIO.StringIO(content))
+                                # Upload the file
+                                with self._connect_sftp() as sftp:
+                                        try:
+                                                sftp.mkdir(remote_dir)
+                                        except IOError:
+                                                # If the directory exists already IOError is raised
+                                                pass
+                                        with sftp.file(remote_filename, 'w') as f:
+                                                f.write(content)
 			else:
 				# In case of a build failure, make a message hash of the UUID
 				remote_filename = None
@@ -73,7 +74,7 @@ class Uploader():
 			if remote_filename is not None:
 				parameters.update({'file': remote_filename})
 
-			response = urllib.urlopen('http://openclonk.org/nightly-builds/', urllib.urlencode(parameters))
+			response = urllib.urlopen('https://www.openclonk.org/nightly-builds/', urllib.urlencode(parameters))
 			if response.getcode() != 200:
 				raise Exception('Upload failed: %s' % response.read())
 
@@ -95,15 +96,13 @@ class Uploader():
 			remote_filename = '%s/%s' % (remote_dir, os.path.basename(filename))
 
 			# Upload the file
-			ftp = ftplib.FTP('ftp.openclonk.org', 'ftp1144497-nightly', open('../passwd/nightly.txt', 'r').read().strip())
-
-			try:
-				ftp.mkd(remote_dir)
-			except ftplib.error_perm:
-				# If the directory exists already errorperm is raised
-				pass
-
-			ftp.storbinary('STOR %s' % remote_filename, open(filename, 'r'))
+                        with self._connect_sftp() as sftp:
+                                try:
+                                        sftp.mkdir(remote_dir)
+                                except IOError:
+                                        # If the directory exists already IOError is raised
+                                        pass
+                                sftp.put(filename, remote_filename)
 
 			return remote_filename, filehash
 			
@@ -119,7 +118,13 @@ class Uploader():
 				'hash': filehash
 			}
 
-			response = urllib.urlopen('http://www.openclonk.org/update/', urllib.urlencode(parameters))
+			response = urllib.urlopen('https://www.openclonk.org/update/', urllib.urlencode(parameters))
 #			response = urllib.urlopen('http://localhost:3526', urllib.urlencode(parameters))
 			if response.getcode() != 200:
 				raise Exception('Upload failed: %s' % response.read())
+
+        def _connect_sftp(self):
+                transport = paramiko.Transport(('openclonk.org', 22))
+                # TODO: Host key verification?
+                transport.connect(hostkey=None, username='builds', pkey=self.ssh_key)
+                return paramiko.SFTPClient.from_transport(transport)
